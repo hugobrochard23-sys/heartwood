@@ -1,0 +1,2033 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>NOIRIUM — La guerre de l'or noir</title>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#16120e; --panel:#241d15; --panel2:#2d2417; --line:#4d3d26; --line2:#6b5330;
+  --ink:#ead9b5; --dim:#a08c68; --dark:#0c0906;
+  --gold:#e8b54a; --red:#d1543a; --green:#93b35c; --teal:#7fae9e;
+}
+*{box-sizing:border-box; image-rendering:pixelated;}
+html,body{height:100%;}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:'VT323',monospace; font-size:19px; line-height:1.25;
+  display:flex; flex-direction:column; overflow:hidden;
+  -webkit-user-select:none; user-select:none;
+}
+h1,h2,h3,.sk{font-family:'Silkscreen',monospace;}
+button{font-family:inherit;}
+::-webkit-scrollbar{width:10px;}
+::-webkit-scrollbar-track{background:var(--dark);}
+::-webkit-scrollbar-thumb{background:var(--line2); border:2px solid var(--dark);}
+
+.pbox{background:var(--panel); border:2px solid var(--line); box-shadow:0 0 0 2px var(--dark);}
+.btn{
+  font-family:'Silkscreen',monospace; font-size:10px; text-transform:uppercase;
+  background:#3b2f1d; color:var(--ink); border:2px solid var(--line2);
+  padding:7px 9px; cursor:pointer; box-shadow:0 3px 0 var(--dark); letter-spacing:.5px;
+  touch-action:manipulation;
+}
+.btn:hover{background:#4a3b24; border-color:var(--gold); color:var(--gold);}
+.btn:active{transform:translateY(3px); box-shadow:none;}
+.btn:disabled{opacity:.4; cursor:default; pointer-events:none;}
+.btn.red{border-color:#7c3a28; color:#e8927e;} .btn.red:hover{border-color:var(--red); color:var(--red);}
+.btn.green{border-color:#4f6230; color:#b9d389;} .btn.green:hover{border-color:var(--green); color:var(--green);}
+.btn.mini{padding:4px 6px; font-size:9px; margin:2px 0;}
+.btn.on{border-color:var(--gold); color:var(--gold); background:#4a3b24;}
+input[type=number], input[type=text]{
+  background:#171208; color:var(--ink); border:2px solid var(--line);
+  font-family:'VT323',monospace; font-size:19px; padding:4px 7px; width:90px; outline:none;
+  -webkit-user-select:text; user-select:text;
+}
+input:focus{border-color:var(--gold);}
+.hidden{display:none !important;}
+.ico{width:14px;height:14px;flex:none;}
+kbd{font-family:'Silkscreen'; font-size:8px; border:1px solid var(--line2); padding:0 3px; color:var(--dim); margin-left:4px;}
+
+/* ---- HUD ---- */
+#hud{
+  display:flex; align-items:center; gap:10px; padding:7px 12px; flex-wrap:wrap;
+  background:var(--panel); border-bottom:3px solid var(--dark); flex:none; z-index:5;
+}
+#hud .logo{font-family:'Silkscreen'; font-size:15px; color:var(--gold); letter-spacing:1px; margin-right:4px;}
+#hud .logo span{color:var(--red);}
+.stat{display:flex; align-items:center; gap:6px; background:var(--panel2); border:2px solid var(--line); padding:3px 8px; white-space:nowrap;}
+.stat b{color:var(--gold); font-size:20px;}
+.stat .sub{color:var(--dim); font-size:15px;}
+#truceStat b{color:var(--teal);}
+#timerBox{margin-left:auto; display:flex; align-items:center; gap:8px;}
+#hudTimer{font-family:'Silkscreen'; font-size:14px; min-width:64px; text-align:right;}
+#hudTimer.warn{color:var(--gold);} #hudTimer.crit{color:var(--red); animation:blink .5s steps(2) infinite;}
+@keyframes blink{50%{opacity:.25;}}
+#tbar{width:110px; height:12px; background:#171208; border:2px solid var(--line);}
+#timerFill{height:100%; background:var(--gold); width:100%;}
+.hbtn{padding:5px 8px; font-size:9px;}
+
+/* ---- layout ---- */
+main{flex:1; display:flex; min-height:0;}
+#mapWrap{flex:1; position:relative; background:#101a1c; overflow:hidden; min-height:0;}
+#map{position:absolute; inset:0; width:100%; height:100%; cursor:crosshair; touch-action:none;}
+#minimap{position:absolute; left:10px; bottom:10px; width:138px; height:102px; border:2px solid var(--line);
+  box-shadow:0 0 0 2px var(--dark); background:#101a1c; cursor:pointer; z-index:4; touch-action:none;}
+#toasts{position:absolute; top:10px; right:10px; display:flex; flex-direction:column; gap:6px; z-index:6; pointer-events:none; max-width:340px;}
+.toast{background:var(--panel); border:2px solid var(--line2); box-shadow:0 0 0 2px var(--dark);
+  padding:6px 10px; font-size:18px; animation:tin .18s steps(3); display:flex; align-items:center; gap:8px;}
+.toast .btn{pointer-events:auto; flex:none;}
+.toast.red{border-color:var(--red); color:#f0a893;}
+.toast.green{border-color:var(--green); color:#c6dd9a;}
+.toast.gold{border-color:var(--gold); color:var(--gold);}
+@keyframes tin{from{transform:translateX(30px); opacity:0;}}
+#tip{position:absolute; left:0; top:0; pointer-events:none; z-index:5; background:rgba(12,9,6,.93);
+  border:2px solid var(--line2); padding:3px 8px; font-size:17px; white-space:nowrap; line-height:1.1;}
+#pauseTag{position:absolute; left:50%; top:14px; transform:translateX(-50%); z-index:6; font-family:'Silkscreen';
+  font-size:14px; color:var(--gold); background:rgba(12,9,6,.85); border:2px solid var(--gold); padding:5px 14px; pointer-events:none;}
+
+/* ---- panneau latéral ---- */
+#side{width:350px; flex:none; border-left:3px solid var(--dark); background:var(--panel);
+  display:flex; flex-direction:column; min-height:0;}
+#sideToggle{display:none; flex:none; width:100%;}
+#questStrip{padding:6px 10px; background:var(--panel2); border-bottom:2px solid var(--line); font-size:17px; flex:none;}
+#questStrip .sk{color:var(--gold); font-size:9px;}
+#ctxPanel{padding:9px 10px; min-height:112px; border-bottom:2px solid var(--line); flex:none; font-size:18px;}
+#ctxPanel .tt{font-family:'Silkscreen'; font-size:11px; color:var(--gold); margin-bottom:4px;}
+#ctxPanel .row{margin:3px 0;}
+.dim{color:var(--dim);}
+.redt{color:#e8927e;} .greent{color:#b9d389;} .goldt{color:var(--gold);} .tealt{color:var(--teal);}
+#tabs{display:flex; flex:none; border-bottom:2px solid var(--dark);}
+#tabs button{flex:1; font-family:'Silkscreen'; font-size:9px; padding:8px 2px; background:#221b12;
+  color:var(--dim); border:none; border-right:2px solid var(--dark); cursor:pointer; position:relative;}
+#tabs button:last-child{border-right:none;}
+#tabs button.on{background:var(--panel2); color:var(--gold);}
+#tabs button:hover{color:var(--ink);}
+#tabs .badge{position:absolute; top:2px; right:4px; background:var(--red); color:#fff; font-size:8px; padding:0 3px;}
+.tabc{flex:1; overflow-y:auto; padding:10px; min-height:0;}
+.card{border:2px solid var(--line); background:var(--panel2); padding:8px 9px; margin-bottom:8px;}
+.card .nm{font-family:'Silkscreen'; font-size:10px; color:var(--ink);}
+.card .ds{color:var(--dim); font-size:16px; margin:2px 0 5px;}
+.brow{display:flex; justify-content:space-between; align-items:center; gap:6px;}
+.sw{width:12px; height:12px; border:2px solid var(--dark); flex:none; display:inline-block; vertical-align:middle;}
+.relbar{height:8px; background:#171208; border:1px solid var(--line); width:90px;}
+.relbar div{height:100%;}
+.tag{font-family:'Silkscreen'; font-size:8px; padding:2px 4px; border:1px solid; margin-left:5px;}
+.tag.ally{color:var(--green); border-color:var(--green);}
+.tag.traitor{color:var(--red); border-color:var(--red);}
+.tag.dead{color:var(--dim); border-color:var(--dim);}
+.offer{border-color:var(--gold);}
+div.trade{margin-top:7px; border-top:1px solid var(--line); padding-top:7px;}
+#logBox div{padding:2px 0; border-bottom:1px solid #2c2318; font-size:17px;}
+#logBox .t{color:var(--dim); margin-right:5px;}
+.lg-war{color:#e8927e;} .lg-good{color:#b9d389;} .lg-gold{color:var(--gold);} .lg-dip{color:var(--teal);} .lg-ev{color:#d8a4e0;}
+#priceBig{font-family:'Silkscreen'; font-size:22px;}
+.mrow{display:flex; gap:6px; align-items:center; margin:6px 0; flex-wrap:wrap;}
+table.mini{width:100%; border-collapse:collapse; font-size:17px; margin-bottom:8px;}
+table.mini td{padding:1px 4px; border-bottom:1px solid #2c2318;}
+table.mini tr.me td{color:var(--gold);}
+.sect{font-family:'Silkscreen'; font-size:9px; color:var(--dim); margin:6px 0;}
+
+/* ---- overlays ---- */
+.overlay{position:fixed; inset:0; background:rgba(10,7,4,.86); z-index:20;
+  display:flex; align-items:center; justify-content:center; padding:16px;}
+.bigcard{max-width:560px; width:100%; padding:24px 26px; text-align:center; max-height:94vh; overflow-y:auto;}
+#titleScreen h1{font-size:44px; margin:0; color:var(--gold); letter-spacing:4px; text-shadow:4px 4px 0 var(--dark);}
+#titleScreen .sub{font-family:'Silkscreen'; font-size:11px; color:var(--red); letter-spacing:3px; margin:6px 0 14px;}
+#titleScreen .pitch{color:var(--dim); font-size:20px; margin:0 0 16px;}
+#playerName{width:100%; text-align:center; margin-bottom:12px;}
+#startBtn{width:100%; padding:13px; font-size:13px;}
+.seg{display:flex; gap:6px; justify-content:center; margin-bottom:10px; flex-wrap:wrap;}
+.chk{display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:12px; color:var(--dim); cursor:pointer;}
+.chk input{width:16px; height:16px; accent-color:var(--gold);}
+#bestLine{margin-top:12px; color:var(--gold); font-size:18px;}
+.legend{margin-top:12px; color:var(--dim); font-size:16px; border-top:1px solid var(--line); padding-top:10px; text-align:left;}
+.legend div{margin:2px 0;}
+#helpModal .bigcard{text-align:left;}
+#helpModal li{margin:6px 0;}
+.podrow{display:flex; align-items:flex-end; justify-content:center; gap:10px; margin:18px 0 8px;}
+.pod{width:130px; text-align:center;}
+.pod .bar{border:2px solid; box-shadow:0 0 0 2px var(--dark); display:flex; align-items:center; justify-content:center;
+  font-family:'Silkscreen'; font-size:20px; margin-top:6px;}
+.pod .pn{font-family:'Silkscreen'; font-size:10px;}
+.pod .ps{color:var(--dim); font-size:16px;}
+.rankWrap{overflow-x:auto;}
+table.rank{width:100%; border-collapse:collapse; margin:12px 0; font-size:18px;}
+table.rank td, table.rank th{border:1px solid var(--line); padding:4px 6px; text-align:left;}
+table.rank th{font-family:'Silkscreen'; font-size:9px; color:var(--dim);}
+table.rank tr.me td{color:var(--gold);}
+table.rank tr.win td{background:#2e2513;}
+#endTitle{font-size:24px; margin:0; color:var(--gold);}
+#endSub{color:var(--dim); margin:8px 0 4px;}
+#endRecord{font-family:'Silkscreen'; font-size:11px; color:var(--green); margin-top:6px;}
+
+/* ---- tutoriel ---- */
+#tutRing{position:fixed; z-index:31; border:3px solid var(--gold); box-shadow:0 0 0 9999px rgba(10,7,4,.6); pointer-events:none;}
+#tutBox{position:fixed; z-index:32; width:300px; max-width:calc(100vw - 16px); padding:12px 14px;}
+#tutTxt{margin:6px 0 10px; font-size:20px;}
+
+/* ---- mobile ---- */
+@media (max-width:760px){
+  body{font-size:17px;}
+  #hud{gap:5px; padding:5px 8px;}
+  #hud .logo{display:none;}
+  .stat{padding:2px 5px;} .stat b{font-size:17px;} .stat .sub{font-size:13px;}
+  #timerBox{margin-left:0; width:100%;}
+  #tbar{flex:1; width:auto; min-width:40px;}
+  main{flex-direction:column;}
+  #side{width:100%; height:44vh; border-left:none; border-top:3px solid var(--dark);}
+  #side.collapsed{height:auto;}
+  #side.collapsed > :not(#sideToggle):not(#questStrip){display:none !important;}
+  #sideToggle{display:block;}
+  #ctxPanel{min-height:0;}
+  #minimap{width:92px; height:68px;}
+  #toasts{max-width:70vw;}
+  #titleScreen h1{font-size:32px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= ÉCRAN TITRE ================= -->
+<div id="titleScreen" class="overlay">
+  <div class="bigcard pbox">
+    <h1>NOIRIUM</h1>
+    <div class="sub">LA GUERRE DE L'OR NOIR</div>
+    <p class="pitch">Six empires. Une ressource : le <b class="goldt">Noirium</b>.
+    Étends-toi, extrais, vends, arme-toi. Allie-toi... ou trahis.
+    Dans <b class="redt">15 minutes</b>, le volcan explose : le meilleur score gagne.</p>
+    <input type="text" id="playerName" maxlength="14" placeholder="Nom de ton empire">
+    <div class="seg" id="diffSeg">
+      <button class="btn mini" data-diff="facile">Facile</button>
+      <button class="btn mini" data-diff="normal">Normal</button>
+      <button class="btn mini" data-diff="difficile">Difficile</button>
+    </div>
+    <label class="chk"><input type="checkbox" id="tutoChk"> Afficher le tutoriel</label>
+    <button class="btn" id="startBtn">FONDER TON EMPIRE</button>
+    <div id="bestLine"></div>
+    <div class="legend">
+      <div>· <b>Clic</b> sur une case voisine : l'annexer. Sur une case ennemie : l'attaquer.</div>
+      <div>· <b>Glisser</b> pour déplacer la carte, <b>molette</b> ou <b>pincer</b> pour zoomer.</div>
+      <div>· <b>Espace</b> pause · <b>F</b> vitesse · <b>1-5</b> bâtiments · <b>H</b> aide.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= HUD ================= -->
+<header id="hud">
+  <div class="logo">NOIR<span>IUM</span></div>
+  <div class="stat" title="Or (revenu net par seconde)"><canvas class="ico" data-icon="gold" width="14" height="14"></canvas><b id="hGold">0</b><span class="sub" id="hInc"></span></div>
+  <div class="stat" title="Noirium / stockage"><canvas class="ico" data-icon="oil" width="14" height="14"></canvas><b id="hOil">0</b><span class="sub" id="hCap">/ 60</span></div>
+  <div class="stat" title="Armée / capacité"><canvas class="ico" data-icon="army" width="14" height="14"></canvas><b id="hArmy">0</b></div>
+  <div class="stat" title="Cases possédées"><canvas class="ico" data-icon="land" width="14" height="14"></canvas><b id="hLand">0</b></div>
+  <div class="stat" title="Prix du Noirium"><canvas class="ico" id="priceIco" width="14" height="14"></canvas><b id="hPrice">100</b></div>
+  <div class="stat" id="truceStat" title="Personne ne peut t'attaquer pendant la trêve"><canvas class="ico" data-icon="shield" width="14" height="14"></canvas><span class="sub">Trêve</span><b id="hTruce">0:00</b></div>
+  <div id="timerBox">
+    <canvas class="ico" data-icon="volcano" width="14" height="14"></canvas>
+    <span id="hudTimer">15:00</span>
+    <div id="tbar"><div id="timerFill"></div></div>
+    <button class="btn hbtn" id="speedBtn" title="Vitesse (F)">x1</button>
+    <button class="btn hbtn" id="pauseBtn" title="Pause (Espace)">Pause</button>
+    <button class="btn hbtn" id="muteBtn">Son</button>
+    <button class="btn hbtn" id="helpBtn" title="Aide (H)">?</button>
+  </div>
+</header>
+
+<main>
+  <div id="mapWrap">
+    <canvas id="map"></canvas>
+    <canvas id="minimap" width="138" height="102"></canvas>
+    <div id="toasts"></div>
+    <div id="tip" class="hidden"></div>
+    <div id="pauseTag" class="hidden">PAUSE</div>
+  </div>
+
+  <aside id="side">
+    <button class="btn" id="sideToggle">▼ Panneau</button>
+    <div id="questStrip"><span class="sk">OBJECTIF</span> <span id="questTxt">—</span> <span class="dim" id="questProg"></span></div>
+    <div id="ctxPanel"></div>
+    <nav id="tabs">
+      <button data-tab="build" class="on">ARMÉE</button>
+      <button data-tab="market">MARCHÉ</button>
+      <button data-tab="diplo">DIPLO<span class="badge hidden" id="offerBadge">0</span></button>
+      <button data-tab="log">JOURNAL</button>
+    </nav>
+    <div class="tabc" id="tab-build"></div>
+    <div class="tabc hidden" id="tab-market">
+      <div class="mrow"><span id="priceBig">100</span><canvas id="priceArrow" width="14" height="14"></canvas><span class="dim">or / unité</span></div>
+      <div class="dim" id="spreadLine">Achat 106 · Vente 94</div>
+      <canvas id="spark" width="300" height="70" style="border:2px solid var(--line); margin:6px 0; width:100%; height:70px;"></canvas>
+      <div id="eventLine" class="dim">Marché calme.</div>
+      <div class="mrow">
+        <input type="number" id="qty" value="10" min="1">
+        <button class="btn mini" data-act="m:q:10">10</button>
+        <button class="btn mini" data-act="m:q:50">50</button>
+        <button class="btn mini" data-act="m:q:max">MAX</button>
+      </div>
+      <div class="mrow">
+        <button class="btn green" data-act="m:sell">Vendre</button>
+        <button class="btn" data-act="m:buy">Acheter</button>
+      </div>
+      <div class="dim" id="mEst"></div>
+    </div>
+    <div class="tabc hidden" id="tab-diplo"><div id="dOffers"></div><div id="dRank"></div><div id="dEmp"></div></div>
+    <div class="tabc hidden" id="tab-log"><div id="logBox"></div></div>
+  </aside>
+</main>
+
+<!-- ================= MODALES ================= -->
+<div id="helpModal" class="overlay hidden">
+  <div class="bigcard pbox">
+    <h2 class="sk" style="color:var(--gold); font-size:14px;">RÈGLES DU JEU</h2>
+    <ul>
+      <li><b>Clic</b> sur une case neutre voisine : l'<b class="greent">annexer</b>. Sur une case ennemie frontalière : l'<b class="redt">attaquer</b> (chance de victoire affichée au survol).</li>
+      <li><b class="goldt">Or</b> : 2/s + 0,2/s par case, moins 0,05/s par soldat.</li>
+      <li><b class="tealt">Noirium</b> : chaque gisement en produit 0,12/s. Les raffineries font +50 %. Le stock est limité par tes entrepôts.</li>
+      <li><b>Routes</b> : un bâtiment relié à ta capitale par des routes a un effet doublé.</li>
+      <li><b>Armée</b> : 20 or par soldat, capacité augmentée par les casernes. Un assaut coûte 10 or + 0,4 par soldat.</li>
+      <li><b class="tealt">Trêve</b> au début : personne ne t'attaque, et tu ne peux pas attaquer.</li>
+      <li><b class="redt">Capitale prise = empire éliminé</b>. Élimine tout le monde pour gagner avant l'éruption.</li>
+      <li><b class="greent">Alliances</b> : protègent et améliorent les échanges. La <b class="redt">trahison</b> fâche tous les empires.</li>
+      <li><b>Score</b> = or + Noirium × prix + soldats × 10 + cases × 15.</li>
+      <li><b>Raccourcis</b> : Espace pause · F vitesse · ZQSD/flèches caméra · +/- zoom · C capitale · V dernière attaque · 1-5 bâtiments · R recruter · T onglet · Échap annuler.</li>
+    </ul>
+    <button class="btn" id="helpClose">COMPRIS</button>
+  </div>
+</div>
+
+<div id="deadModal" class="overlay hidden">
+  <div class="bigcard pbox">
+    <h2 class="sk" style="color:var(--red); font-size:16px;">TA CAPITALE EST TOMBÉE</h2>
+    <p id="deadTxt" class="dim"></p>
+    <p>Ton score est figé. Le monde continue sans toi...</p>
+    <button class="btn" id="spectateBtn">REGARDER LA SUITE</button>
+    <button class="btn red" id="deadReplay">RECOMMENCER</button>
+  </div>
+</div>
+
+<div id="endScreen" class="overlay hidden">
+  <div class="bigcard pbox" style="max-width:660px;">
+    <h2 class="sk" id="endTitle"></h2>
+    <p id="endSub"></p>
+    <div id="endRecord"></div>
+    <div class="podrow" id="podrow"></div>
+    <div class="rankWrap"><table class="rank" id="rankTable"></table></div>
+    <button class="btn" id="replayBtn">REJOUER</button>
+  </div>
+</div>
+
+<div id="tutRing" class="hidden"></div>
+<div id="tutBox" class="pbox hidden">
+  <div class="sk" id="tutStep" style="font-size:9px; color:var(--dim);"></div>
+  <div id="tutTxt"></div>
+  <div style="display:flex; gap:6px; justify-content:flex-end;">
+    <button class="btn mini" id="tutSkip">Passer</button>
+    <button class="btn mini green" id="tutNext">Suivant</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ============================================================
+   NOIRIUM — mini-RTS territorial façon OpenFront, 100% local.
+   ============================================================ */
+
+// ---------- constantes ----------
+const W=46, H=34, TS=16, GAME_LEN=900;
+const T={WATER:0,PLAIN:1,FOREST:2,MTN:3,VOLCANO:4,LAVA:5,ASH:6};
+const TERR_NAMES=["Eau","Plaine","Forêt","Montagne","Volcan","Lave","Cendres"];
+const B={NONE:0,ROAD:1,WARE:2,BARRACKS:3,ARMS:4,REFINERY:5,CITY:6};
+const BDEF={
+  [B.ROAD]:     {name:"Route",        cost:8,   desc:"Relie les bâtiments à la capitale. Bâtiment relié = effet x2."},
+  [B.WARE]:     {name:"Entrepôt",     cost:80,  desc:"+100 de stockage de Noirium (50 si isolé)."},
+  [B.BARRACKS]: {name:"Caserne",      cost:100, desc:"+30 soldats max et +25% de défense (moitié si isolée)."},
+  [B.ARMS]:     {name:"Usine d'armes",cost:150, desc:"+15% de puissance d'attaque (moitié si isolée)."},
+  [B.REFINERY]: {name:"Raffinerie",   cost:120, desc:"+50% d'extraction sur tes gisements (reliée, 3 max)."},
+};
+const BUILD_ORDER=[B.ROAD,B.WARE,B.BARRACKS,B.ARMS,B.REFINERY];
+const ECO={base:2,perTile:.2,upkeep:.05,well:.12,refBonus:.5,baseCap:60,baseArmy:25,soldier:20};
+const DIFF={
+  facile:   {label:"Facile",   truce:240, aggr:.7,  botGold:150, botArmy:10},
+  normal:   {label:"Normal",   truce:150, aggr:1,   botGold:200, botArmy:12},
+  difficile:{label:"Difficile",truce:75,  aggr:1.35,botGold:260, botArmy:16},
+};
+const BOT_DEFS=[
+  {name:"Kargath", color:"#c65b3f", pers:"warlord"},
+  {name:"Vexa",    color:"#4f9e8f", pers:"merchant"},
+  {name:"Brutor",  color:"#c98a3d", pers:"expander"},
+  {name:"Sylva",   color:"#7f9e4a", pers:"expander"},
+  {name:"Morvan",  color:"#8d5f7f", pers:"schemer"},
+];
+const PERS_TXT={warlord:"belliqueux", merchant:"marchand", expander:"expansionniste", schemer:"fourbe"};
+
+// ---------- utilitaires ----------
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const rnd=(a=1,b)=>b===undefined?Math.random()*a:a+Math.random()*(b-a);
+const ri=(a,b)=>Math.floor(rnd(a,b+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const fmt=n=>Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ");
+const fmtTime=s=>{s=Math.max(0,Math.ceil(s));return `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;};
+const idx=(x,y)=>y*W+x;
+const $=id=>document.getElementById(id);
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const NB=[];
+for(let i=0;i<W*H;i++){const x=i%W,y=(i/W)|0,a=[];if(x>0)a.push(i-1);if(x<W-1)a.push(i+1);if(y>0)a.push(i-W);if(y<H-1)a.push(i+W);NB.push(a);}
+function distC(i,j){const dx=(i%W)-(j%W),dy=((i/W)|0)-((j/W)|0);return Math.hypot(dx,dy);}
+const store={
+  get(k){try{return localStorage.getItem(k);}catch(e){return null;}},
+  set(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+};
+const hexRgb=c=>{const n=parseInt(c.slice(1),16);return [(n>>16)&255,(n>>8)&255,n&255];};
+
+// ---------- audio 8-bit (synthétisé) ----------
+let AC=null, muted=false;
+function ac(){ try{ if(!AC) AC=new (window.AudioContext||window.webkitAudioContext)(); if(AC.state==="suspended")AC.resume(); }catch(e){} return AC; }
+function tone(f0,f1,dur,type="square",vol=.07,delay=0){
+  if(muted||!AC)return; try{const a=AC,t=a.currentTime+delay,o=a.createOscillator(),g=a.createGain();
+  o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(1,f1),t+dur);
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);
+  o.connect(g).connect(a.destination);o.start(t);o.stop(t+dur+.02);}catch(e){}
+}
+function noiseS(dur,vol=.2,fq=800,delay=0){
+  if(muted||!AC)return; try{const a=AC,t=a.currentTime+delay,len=(a.sampleRate*dur)|0,
+  buf=a.createBuffer(1,len,a.sampleRate),d=buf.getChannelData(0);
+  for(let i=0;i<len;i++)d[i]=Math.random()*2-1;
+  const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();
+  s.buffer=buf;f.type="lowpass";f.frequency.value=fq;
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);
+  s.connect(f).connect(g).connect(a.destination);s.start(t);}catch(e){}
+}
+const sfxLast={};
+function sfx(k){
+  const now=performance.now(); if(sfxLast[k]&&now-sfxLast[k]<60)return; sfxLast[k]=now;
+  switch(k){
+  case"click":tone(600,600,.04,"square",.035);break;
+  case"coin":tone(760,900,.06,"square",.05);tone(1140,1200,.07,"square",.04,.05);break;
+  case"build":tone(220,180,.08,"square",.06);tone(330,300,.08,"square",.05,.07);break;
+  case"err":tone(160,90,.15,"sawtooth",.06);break;
+  case"war":noiseS(.25,.16,900);tone(120,60,.25,"sawtooth",.08);break;
+  case"kill":tone(300,40,.6,"sawtooth",.11);noiseS(.5,.18,500);break;
+  case"ally":tone(520,520,.09,"square",.05);tone(660,660,.09,"square",.05,.09);tone(880,880,.14,"square",.05,.18);break;
+  case"alert":tone(880,880,.09,"square",.06);tone(880,880,.09,"square",.06,.14);tone(880,880,.09,"square",.06,.28);break;
+  case"boom":noiseS(2.4,.4,240);tone(90,25,2.2,"sawtooth",.22);break;
+  case"sell":tone(700,980,.08,"square",.05);break;
+  case"buy":tone(980,700,.08,"square",.05);break;
+}}
+
+// ---------- sprites pixel ----------
+function px(g,x,y,w,h,c){g.fillStyle=c;g.fillRect(x,y,w,h);}
+function sh(c,f=0.72){const [r,gg,b]=hexRgb(c);return `rgb(${(r*f)|0},${(gg*f)|0},${(b*f)|0})`;}
+let atlas=null, oreAtlas=null;
+function buildAtlas(){
+  if(atlas)return;
+  atlas=document.createElement("canvas"); atlas.width=TS*4; atlas.height=TS*7;
+  oreAtlas=document.createElement("canvas"); oreAtlas.width=TS*4; oreAtlas.height=TS;
+  const g=atlas.getContext("2d"), og=oreAtlas.getContext("2d");
+  for(let v=0;v<4;v++)for(let t=0;t<7;t++)paintTile(g,v*TS,t*TS,t,v*97+13+t*31);
+  for(let v=0;v<4;v++)paintOre(og,v*TS,0,v*57+3);
+}
+function paintTile(g,ox,oy,t,seed){
+  const R=mulberry32(seed), put=(x,y,w,h,c)=>px(g,ox+x,oy+y,w,h,c);
+  if(t===T.WATER){
+    put(0,0,16,16,"#2e5560");
+    for(let i=0;i<4;i++){const x=(R()*13)|0,y=(R()*14)|0;put(x,y+1,3,1,"#3a6a76");put(x+1,y,1,1,"#48808d");}
+  }else if(t===T.PLAIN||t===T.FOREST){
+    put(0,0,16,16,"#7d9053");
+    for(let i=0;i<9;i++){const x=(R()*16)|0,y=(R()*16)|0;put(x,y,1,1,R()<.5?"#8aa05e":"#6e8147");}
+    if(t===T.FOREST){
+      for(const [tx,ty] of [[3,3],[10,6],[5,9]]){
+        put(tx+1,ty+4,1,2,"#5a4632");
+        put(tx,ty+1,3,3,"#3f5c33"); put(tx+1,ty,1,1,"#3f5c33"); put(tx+1,ty+1,1,1,"#557a42");
+      }
+    }
+  }else if(t===T.MTN){
+    put(0,0,16,16,"#6f6a5e");
+    for(let i=0;i<6;i++){const x=(R()*16)|0,y=(R()*16)|0;put(x,y,1,1,R()<.5?"#7a7568":"#615c50");}
+    put(6,3,3,2,"#948d7d"); put(5,5,5,2,"#948d7d"); put(4,7,7,3,"#8a8375"); put(3,10,9,3,"#7d7668");
+    put(7,4,2,2,"#a39a86"); put(8,6,3,8,"#57534a");
+  }else if(t===T.VOLCANO){
+    put(0,0,16,16,"#4b423c");
+    for(let i=0;i<6;i++){put((R()*16)|0,(R()*16)|0,1,1,"#3a332e");}
+    put(5,4,6,2,"#3a332e"); put(4,6,8,3,"#332d28"); put(3,9,10,4,"#2c2723");
+    put(6,4,4,2,"#d0492c"); put(7,4,2,1,"#f2a13c"); put(6,6,1,2,"#d0492c"); put(9,7,1,1,"#f2a13c");
+  }else if(t===T.LAVA){
+    put(0,0,16,16,"#d0492c");
+    for(let i=0;i<7;i++){put((R()*14)|0,(R()*14)|0,2,1,R()<.5?"#f2a13c":"#ffd23f");}
+    for(let i=0;i<4;i++){put((R()*15)|0,(R()*15)|0,1,1,"#8a2c18");}
+  }else if(t===T.ASH){
+    put(0,0,16,16,"#55504a");
+    for(let i=0;i<8;i++){put((R()*16)|0,(R()*16)|0,1,1,R()<.5?"#48443f":"#635d55");}
+  }
+}
+function paintOre(g,ox,oy,seed){
+  const R=mulberry32(seed), put=(x,y,w,h,c)=>px(g,ox+x,oy+y,w,h,c);
+  for(const [x,y] of [[3,4],[9,3],[12,9],[5,10]]){
+    put(x,y,2,2,"#1b1b20"); put(x,y,1,1,"#5a5f6b"); if(R()<.6)put(x+1,y+1,1,1,"#33333c");
+  }
+  put(7,7,2,1,"#1b1b20"); put(2,13,2,1,"#1b1b20");
+}
+const sprCache=new Map();
+function buildSprite(b,pid){
+  const key=b+":"+pid; if(sprCache.has(key))return sprCache.get(key);
+  const c=document.createElement("canvas"); c.width=TS; c.height=TS;
+  const g=c.getContext("2d"), col=players[pid].color;
+  if(b===B.WARE){
+    px(g,2,7,12,7,"#6d5b43"); px(g,2,7,1,7,"#5a4a36"); px(g,13,7,1,7,"#5a4a36");
+    px(g,1,5,14,3,"#8d7758"); px(g,1,5,14,1,"#a68c66");
+    px(g,6,9,4,5,"#241a10"); px(g,6,8,4,1,"#3d2f20");
+    px(g,3,11,2,3,"#23232b"); px(g,3,11,1,1,"#5a5f6b"); px(g,11,11,2,3,"#23232b"); px(g,11,11,1,1,"#5a5f6b");
+    px(g,2,14,12,1,col);
+  }else if(b===B.BARRACKS){
+    px(g,5,5,6,9,"#877d6d"); px(g,5,5,1,9,"#6f675a");
+    px(g,4,3,8,3,"#a5482f"); px(g,4,3,8,1,"#c25a3a");
+    px(g,7,7,2,3,"#241a10");
+    px(g,8,0,1,3,"#3a2e22"); px(g,9,0,3,2,col);
+    px(g,4,13,8,1,"#5f584c");
+  }else if(b===B.ARMS){
+    px(g,2,9,12,5,"#57534a"); px(g,2,7,4,2,"#6a655a"); px(g,7,7,4,2,"#6a655a"); px(g,12,7,2,2,"#6a655a");
+    px(g,11,3,3,7,"#413d35"); px(g,11,3,3,1,"#26231e"); px(g,11,4,1,1,"#c25a3a");
+    px(g,6,11,3,3,"#241a10"); px(g,3,11,1,2,"#241a10"); px(g,2,14,12,1,col);
+  }else if(b===B.REFINERY){
+    px(g,2,10,5,4,"#7a6a4c"); px(g,2,10,5,1,"#93805d");
+    px(g,9,4,1,10,"#6e5a3f"); px(g,13,4,1,10,"#6e5a3f");
+    px(g,10,6,3,1,"#6e5a3f"); px(g,10,9,3,1,"#6e5a3f"); px(g,10,3,3,1,"#8a7358");
+    px(g,11,1,1,2,"#e8913c"); px(g,11,0,1,1,"#f2cf5b"); px(g,2,14,5,1,col);
+  }else if(b===B.CITY){
+    px(g,1,14,14,1,"rgba(0,0,0,.3)");
+    px(g,2,9,12,5,"#918878"); px(g,2,9,12,1,"#a89f8c");
+    for(const x of [2,5,8,12])px(g,x,8,2,1,"#918878");
+    px(g,1,5,3,10,"#7d7466"); px(g,12,5,3,10,"#7d7466");
+    px(g,1,4,1,1,"#7d7466"); px(g,3,4,1,1,"#7d7466"); px(g,12,4,1,1,"#7d7466"); px(g,14,4,1,1,"#7d7466");
+    px(g,5,2,6,12,"#7d7466"); px(g,5,1,2,1,"#7d7466"); px(g,9,1,2,1,"#7d7466"); px(g,5,2,6,1,"#918878");
+    px(g,6,4,1,2,"#241a10"); px(g,9,4,1,2,"#241a10");
+    px(g,6,7,4,4,col); px(g,6,10,4,1,sh(col));
+    px(g,7,11,3,4,"#241a10"); px(g,7,11,1,1,"#4a3a28");
+    px(g,2,7,1,2,"#241a10"); px(g,13,7,1,2,"#241a10");
+  }
+  sprCache.set(key,c); return c;
+}
+function drawIcon(c,type){
+  const g=c.getContext("2d"); g.clearRect(0,0,14,14);
+  if(type==="gold"){
+    px(g,3,2,8,1,"#b98a2e");px(g,2,3,1,8,"#b98a2e");px(g,11,3,1,8,"#b98a2e");px(g,3,11,8,1,"#b98a2e");
+    px(g,3,3,8,8,"#f2cf5b"); px(g,4,4,3,1,"#ffedbe"); px(g,6,5,2,4,"#c79432");
+  }else if(type==="oil"){
+    px(g,6,1,3,2,"#3a3a46");px(g,5,3,5,3,"#3a3a46");px(g,4,6,7,4,"#3a3a46");px(g,5,10,5,2,"#3a3a46");
+    px(g,5,11,4,1,"#26262e"); px(g,6,4,1,3,"#7d8494"); px(g,7,1,1,1,"#7d8494");
+  }else if(type==="army"){
+    px(g,6,1,2,8,"#b8bcc4"); px(g,4,9,6,1,"#8a6a34"); px(g,6,10,2,3,"#5a4632"); px(g,5,13,4,1,"#8a6a34");
+  }else if(type==="land"){
+    px(g,2,3,10,9,"#7d9053"); px(g,2,3,10,1,"#55663a"); px(g,2,11,10,1,"#55663a"); px(g,2,3,1,9,"#55663a"); px(g,11,3,1,9,"#55663a");
+    px(g,4,5,1,2,"#3f5c33"); px(g,9,7,1,2,"#3f5c33");
+  }else if(type==="volcano"){
+    px(g,5,4,4,2,"#5a5048");px(g,4,6,6,2,"#5a5048");px(g,3,8,8,2,"#4a423c");px(g,2,10,10,2,"#3c352f");
+    px(g,6,3,3,1,"#d0492c"); px(g,7,2,1,1,"#f2a13c");
+  }else if(type==="shield"){
+    px(g,3,2,8,1,"#7fae9e");px(g,2,3,10,5,"#7fae9e");px(g,3,8,8,2,"#7fae9e");px(g,5,10,4,1,"#7fae9e");px(g,6,11,2,1,"#7fae9e");
+    px(g,4,4,3,3,"#b6d8cc");
+  }
+}
+function drawArrow(c,up){
+  const g=c.getContext("2d"); g.clearRect(0,0,14,14); const col=up?"#93b35c":"#d1543a";
+  if(up){px(g,6,2,2,1,col);px(g,5,3,4,1,col);px(g,4,4,6,1,col);px(g,6,5,2,6,col);}
+  else{px(g,6,11,2,1,col);px(g,5,10,4,1,col);px(g,4,9,6,1,col);px(g,6,3,2,6,col);}
+}
+document.querySelectorAll("canvas[data-icon]").forEach(c=>drawIcon(c,c.dataset.icon));
+drawArrow($("priceIco"),true);
+(function(){
+  const c=document.createElement("canvas"); c.width=c.height=64; const g=c.getContext("2d");
+  g.fillStyle="#16120e"; g.fillRect(0,0,64,64);
+  const R=mulberry32(7);
+  for(let i=0;i<260;i++){g.fillStyle=R()<.5?"#1a1510":"#120e0a"; g.fillRect((R()*64)|0,(R()*64)|0,1,1);}
+  $("titleScreen").style.backgroundImage=`url(${c.toDataURL()})`;
+})();
+
+// ---------- état global ----------
+let game=null, players=null, statVer=0;
+const me=()=>players[0];
+const netCache=new Map(), statCache=new Map();
+function touchMap(i){
+  statVer++;
+  if(!game)return;
+  if(i===undefined||i<0){game.dirty=true;return;}
+  game.dirtyTiles.add(i); for(const n of NB[i])game.dirtyTiles.add(n);
+}
+
+function newGame(name,dk){
+  const D=DIFF[dk]||DIFF.normal;
+  players=[{id:0,name,color:"#f2cf5b",bot:false,alive:true,gold:120,oil:0,army:10,
+    city:-1,ownedCount:0,rel:{},allies:new Set(),betrayT:-999,lastHit:-99,finalScore:null}];
+  for(const d of BOT_DEFS){
+    players.push({id:players.length,name:d.name,color:d.color,pers:d.pers,bot:true,alive:true,
+      gold:D.botGold,oil:0,army:D.botArmy,city:-1,ownedCount:0,rel:{},allies:new Set(),betrayT:-999,
+      atkCd:rnd(10,25),dipCd:rnd(30,60),aiAcc:rnd(0,2.2),lastHit:-99,finalScore:null});
+  }
+  for(const p of players){p.rgb=hexRgb(p.color); for(const q of players)if(p!==q)p.rel[q.id]=ri(-10,20);}
+  netCache.clear(); statCache.clear(); sprCache.clear(); statVer++;
+  game={phase:"play",time:0,paused:false,speed:1,diff:D,diffKey:dk,truce:D.truce,tiles:[],
+    price:100,drift:0,hist:[100],histVer:1,offers:[],oid:1,evNext:ri(40,60),
+    mod:{income:1,extract:1,until:0,label:""},qi:0,qc:{annex:0,sold:0},
+    volcano:idx(23,17),eruptT:0,warn5:false,warn1:false,truceWarned:false,shake:0,
+    placing:null,sel:-1,hover:-1,parts:[],flashes:[],floats:[],pings:[],lastAttack:-1,
+    smokeAcc:0,dirty:true,dirtyTiles:new Set(),mmDirty:true,tut:null,modal:false,econAcc:0,uiAcc:0,tradeQty:{}};
+  genMap();
+  for(const p of players){recomputeNet(p.id);}
+  touchMap();
+  buildAtlas();
+  $("logBox").innerHTML="";
+  logMsg(`L'empire de ${name} est fondé. 15 minutes avant l'éruption.`,"lg-gold");
+  logMsg(`Trêve de ${fmtTime(D.truce)} : aucune attaque contre toi d'ici là.`,"lg-dip");
+}
+
+// ---------- génération de la carte ----------
+function vnoiseGrid(w,h,seed){const r=mulberry32(seed),g=new Float32Array(w*h);for(let i=0;i<w*h;i++)g[i]=r();return g;}
+function vnoise(g,w,h,x,y){
+  const xi=Math.floor(x),yi=Math.floor(y),fx=x-xi,fy=y-yi;
+  const s=(a,b)=>g[((b%h+h)%h)*w+((a%w+w)%w)];
+  const u=fx*fx*(3-2*fx),v=fy*fy*(3-2*fy);
+  return s(xi,yi)*(1-u)*(1-v)+s(xi+1,yi)*u*(1-v)+s(xi,yi+1)*(1-u)*v+s(xi+1,yi+1)*u*v;
+}
+const isLand=i=>{const t=game.tiles[i].t;return t===T.PLAIN||t===T.FOREST||t===T.MTN;};
+const buildable=tl=>tl.b===0&&(tl.t===T.PLAIN||tl.t===T.FOREST);
+function genMap(){
+  const n1=vnoiseGrid(16,12,ri(1,99999)),n2=vnoiseGrid(16,12,ri(1,99999));
+  const cx=W/2,cy=H/2, tiles=game.tiles;
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+    let h=vnoise(n1,16,12,x/6,y/6)*.65+vnoise(n2,16,12,x/2.5,y/2.5)*.35;
+    const dx=(x-cx)/(W/2),dy=(y-cy)/(H/2);
+    h-=(dx*dx+dy*dy)*.55;
+    let t=h<.34?T.WATER:h<.56?T.PLAIN:h<.72?T.FOREST:T.MTN;
+    const dv=Math.hypot(x-cx,y-cy);
+    if(dv<6&&t===T.WATER)t=T.PLAIN;
+    if(dv<2.4)t=T.VOLCANO; else if(dv<4.2)t=T.MTN;
+    tiles[idx(x,y)]={t,o:-1,b:0,res:false};
+  }
+  const off=rnd(0,Math.PI*2);
+  for(let k=0;k<6;k++){
+    const a=off+k/6*Math.PI*2+rnd(-.12,.12);
+    let sx=Math.round(cx+Math.cos(a)*12.5), sy=Math.round(cy+Math.sin(a)*10);
+    sx=clamp(sx,3,W-4); sy=clamp(sy,3,H-4);
+    outer: for(let r=0;r<4;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){
+      const nx=clamp(sx+dx,3,W-4),ny=clamp(sy+dy,3,H-4);
+      if(tiles[idx(nx,ny)].t===T.PLAIN){sx=nx;sy=ny;break outer;}
+    }
+    // pont terrestre garanti vers le centre
+    const steps=Math.ceil(Math.hypot(cx-sx,cy-sy));
+    for(let s=0;s<=steps;s++){
+      const lx=Math.round(sx+(cx-sx)*s/steps), ly=Math.round(sy+(cy-sy)*s/steps);
+      if(Math.hypot(lx-cx,ly-cy)<4.2)break;
+      const tl=tiles[idx(lx,ly)]; if(tl.t===T.WATER)tl.t=T.PLAIN;
+    }
+    const ci=idx(sx,sy);
+    players[k].city=ci;
+    for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+      const t2=tiles[idx(sx+dx,sy+dy)];
+      if(t2.t!==T.PLAIN&&t2.t!==T.FOREST)t2.t=T.PLAIN;
+      t2.o=k;
+    }
+    tiles[ci].b=B.CITY;
+    players[k].ownedCount=9;
+  }
+  // un gisement garanti près de chaque capitale
+  for(const p of players){
+    const dist=new Map([[p.city,0]]),q=[p.city],cands=[];
+    for(let h=0;h<q.length;h++){
+      const c=q[h];
+      for(const n of NB[c]){
+        if(dist.has(n)||!isLand(n)||distC(n,p.city)>5.6)continue;
+        dist.set(n,1); q.push(n);
+        const tl=tiles[n];
+        if(tl.o===-1&&!tl.res&&distC(n,p.city)>=3.5&&players.every(o=>o===p||distC(n,o.city)>=6))cands.push(n);
+      }
+    }
+    if(cands.length)tiles[pick(cands)].res=true;
+  }
+  let placed=0,guard=0;
+  while(placed<8&&guard++<2000){
+    const i=ri(0,W*H-1),tl=tiles[i];
+    if(!isLand(i)||tl.res||tl.o!==-1)continue;
+    if(players.some(p=>distC(i,p.city)<6))continue;
+    tl.res=true; placed++;
+  }
+}
+
+// ---------- réseau (routes) ----------
+function recomputeNet(pid){
+  const p=players[pid],set=new Set();
+  if(p.alive){
+    const q=[p.city]; set.add(p.city);
+    while(q.length){
+      const i=q.pop();
+      for(const n of NB[i]){
+        const tl=game.tiles[n];
+        if(!set.has(n)&&tl.o===pid&&tl.b>0){set.add(n);q.push(n);}
+      }
+    }
+  }
+  netCache.set(pid,set);
+}
+const isConnected=(pid,i)=>netCache.get(pid)?.has(i)||false;
+
+// ---------- statistiques d'empire (en cache) ----------
+function bstats(pid){
+  const c=statCache.get(pid); if(c&&c.ver===statVer)return c;
+  let wells=0,cap=ECO.baseCap,barrC=0,barrN=0,armsC=0,armsN=0,refC=0,owned=0;
+  const net=netCache.get(pid)||new Set();
+  for(let i=0;i<W*H;i++){
+    const tl=game.tiles[i]; if(tl.o!==pid)continue;
+    owned++;
+    if(tl.res)wells++;
+    const on=net.has(i);
+    if(tl.b===B.WARE)cap+=on?100:50;
+    else if(tl.b===B.BARRACKS){on?barrC++:barrN++;}
+    else if(tl.b===B.ARMS){on?armsC++:armsN++;}
+    else if(tl.b===B.REFINERY&&on)refC++;
+  }
+  refC=Math.min(refC,3);
+  const s={ver:statVer,wells,cap,barrC,barrN,armsC,armsN,refC,owned,
+    armyCap:ECO.baseArmy+30*barrC+15*barrN,
+    atkMul:1+.15*armsC+.075*armsN,
+    defMul:Math.min(2.5,1+.25*barrC+.12*barrN),
+    extract:wells*ECO.well*(1+ECO.refBonus*refC)};
+  statCache.set(pid,s); return s;
+}
+const powerOf=p=>p.army*bstats(p.id).atkMul;
+function defenseOf(d,i){
+  let m=bstats(d.id).defMul;
+  if(i===d.city)m*=1.6;
+  const t=game.tiles[i].t; if(t===T.MTN)m*=1.3; else if(t===T.FOREST)m*=1.15;
+  return d.army*m;
+}
+function winChance(ap,dp){
+  if(dp<=0)return 1; if(ap<=0)return 0;
+  let w=0;
+  for(let a=0;a<8;a++)for(let b=0;b<8;b++)if(ap*(.85+.3*(a+.5)/8)>dp*(.9+.2*(b+.5)/8))w++;
+  return w/64;
+}
+const atkCost=p=>Math.round(10+p.army*.4);
+const incomeOf=p=>(ECO.base+p.ownedCount*ECO.perTile)*game.mod.income;
+const truceActive=()=>game.time<game.truce;
+function scoreOf(p){return p.gold+p.oil*game.price*.94+p.army*10+p.ownedCount*15;}
+
+// ---------- économie ----------
+function playerEcon(p,dt){
+  if(!p.alive)return;
+  const st=bstats(p.id);
+  p.gold+=(incomeOf(p)-p.army*ECO.upkeep)*dt;
+  if(p.gold<0){
+    const d=Math.min(p.army,Math.max(1,Math.round(-p.gold/4)));
+    p.army-=d; p.gold=0;
+    if(!p.bot)toast(`Caisses vides : ${d} soldats désertent !`,"red");
+  }
+  if(p.army>st.armyCap)p.army=Math.max(st.armyCap,p.army-Math.ceil((p.army-st.armyCap)*.25));
+  p.oil=Math.min(p.oil+st.extract*game.mod.extract*dt,Math.max(st.cap,0));
+  p.full=st.wells>0&&p.oil>=st.cap-.01;
+}
+function marketTick(){
+  game.drift=clamp(game.drift+(Math.random()-.5)*.5+(100-game.price)*.003,-1,1);
+  game.price=clamp(game.price+game.drift+(Math.random()-.5)*2.2,25,260);
+  game.hist.push(game.price); if(game.hist.length>160)game.hist.shift();
+  game.histVer++;
+}
+function marketImpact(q){ game.price=clamp(game.price+q*.05,25,260); }
+const sellUnit=()=>Math.round(game.price*.94), buyUnit=()=>Math.round(game.price*1.06);
+function marketTrade(pid,qty,sell){
+  const p=players[pid];
+  if(sell){
+    qty=Math.min(qty,Math.floor(p.oil)); if(qty<1)return 0;
+    const u=sellUnit(); p.oil-=qty; p.gold+=qty*u; marketImpact(-qty); return qty*u;
+  }
+  const u=buyUnit(), room=Math.floor(bstats(pid).cap-p.oil);
+  qty=Math.min(qty,Math.floor(p.gold/u),room); if(qty<1)return 0;
+  p.gold-=qty*u; p.oil+=qty; marketImpact(qty); return qty*u;
+}
+
+// ---------- actions ----------
+function annexCost(pid,i){
+  const p=players[pid],t=game.tiles[i].t;
+  const base=10*(1+Math.pow(Math.max(p.ownedCount,1),1.1)*.015);
+  return Math.round(base*(t===T.MTN?1.8:t===T.FOREST?1.3:1));
+}
+function isAdjOwned(i,pid){const n=NB[i];for(let k=0;k<n.length;k++)if(game.tiles[n[k]].o===pid)return true;return false;}
+function worldCenter(i){return [(i%W)*TS+8,((i/W)|0)*TS+8];}
+function floatTxt(i,txt,c){const [x,y]=worldCenter(i);game.floats.push({x,y,txt,c,t:1.4});}
+
+function captureTile(p,i){
+  const tl=game.tiles[i],prev=tl.o;
+  tl.o=p.id; p.ownedCount++;
+  if(prev>=0){players[prev].ownedCount--; players[prev].lastHit=game.time;}
+  recomputeNet(p.id); if(prev>=0)recomputeNet(prev);
+  touchMap(i);
+  game.flashes.push({i,t:.5,c:p.color});
+}
+function tryAnnex(pid,i){
+  const p=players[pid],tl=game.tiles[i];
+  if(!p.alive||tl.o!==-1||!isLand(i)||!isAdjOwned(i,pid))return false;
+  const c=annexCost(pid,i);
+  if(p.gold<c){if(pid===0){sfx("err");toast(`Il faut ${c} or pour annexer.`,"red");}return false;}
+  p.gold-=c; captureTile(p,i);
+  if(pid===0){
+    sfx("coin"); floatTxt(i,`-${c} or`,"#e8b54a"); game.qc.annex++;
+    if(tl.res)toast("Gisement de Noirium capturé !","gold");
+    for(const n of NB[i]){const o=game.tiles[n].o;if(o>0)addRel(o,0,-2);}
+  }
+  return true;
+}
+function tryBuild(pid,i,type,silent){
+  const p=players[pid],tl=game.tiles[i];
+  if(!p.alive||tl.o!==pid||!buildable(tl))return false;
+  const cost=BDEF[type].cost;
+  if(p.gold<cost){if(pid===0&&!silent){sfx("err");toast(`Il faut ${cost} or.`,"red");}return false;}
+  p.gold-=cost; tl.b=type; recomputeNet(pid); touchMap(i);
+  game.flashes.push({i,t:.35,c:"#ffffff"});
+  if(pid===0){sfx("build"); floatTxt(i,`-${cost} or`,"#e8b54a");}
+  return true;
+}
+function demolish(pid,i){
+  const p=players[pid],tl=game.tiles[i];
+  if(tl.o!==pid||tl.b<=0||tl.b===B.CITY)return false;
+  const refund=Math.round(BDEF[tl.b].cost*.3);
+  p.gold+=refund; tl.b=0; recomputeNet(pid); touchMap(i);
+  if(pid===0){sfx("build"); floatTxt(i,`+${refund} or`,"#b9d389");}
+  return true;
+}
+function focusTile(i){
+  const [x,y]=worldCenter(i);
+  cam.x=x-vw/cam.z/2; cam.y=y-vh/cam.z/2; clampCam();
+}
+function tryAttack(pid,i){
+  const a=players[pid],tl=game.tiles[i],d=tl.o>=0?players[tl.o]:null,isMe=pid===0;
+  if(!a.alive||!d||!d.alive||d===a||!isLand(i)||!isAdjOwned(i,pid))return false;
+  const fail=m=>{if(isMe){sfx("err");toast(m,"red");}return false;};
+  if(a.allies.has(d.id))return fail("C'est un allié ! Romps le pacte dans l'onglet Diplo.");
+  if((isMe||d.id===0)&&truceActive())return fail(`Trêve : aucune attaque avant ${fmtTime(game.truce-game.time)}.`);
+  if(a.army<1)return fail("Tu n'as pas d'armée : recrute des soldats !");
+  const cost=atkCost(a);
+  if(a.gold<cost)return fail(`Un assaut coûte ${cost} or.`);
+  a.gold-=cost;
+  const ap=powerOf(a)*rnd(.85,1.15), dp=defenseOf(d,i)*rnd(.9,1.1);
+  const win=ap>dp;
+  const la=win?rnd(.04,.08):rnd(.12,.2), ld=win?rnd(.1,.16):rnd(.04,.08);
+  const lossA=Math.min(a.army,Math.max(1,Math.round(a.army*la)));
+  const lossD=Math.min(d.army,Math.max(d.army>0?1:0,Math.round(d.army*ld*(i===d.city?1.3:1))));
+  a.army-=lossA; d.army-=lossD;
+  d.lastHit=game.time; addRel(d.id,a.id,-30);
+  game.flashes.push({i,t:.6,c:win?a.color:"#d1543a"});
+  if(isMe){sfx("war"); floatTxt(i,win?`Victoire ! -${lossA}`:`Échec -${lossA}`,win?"#b9d389":"#e8927e");}
+  if(d.id===0){
+    sfx("war"); game.lastAttack=i; game.pings.push({i,t:4});
+    floatTxt(i,`-${lossD} soldats`,"#e8927e");
+  }
+  if(win&&i===d.city){
+    logMsg(`${a.name} prend la capitale de ${d.name} !`,"lg-war");
+    eliminate(d,a); return true;
+  }
+  if(win){
+    captureTile(a,i);
+    if(isMe)logMsg(`Tu arraches une case à ${d.name}.`,"lg-good");
+    else if(d.id===0){logMsg(`${a.name} t'arrache une case !`,"lg-war");
+      toast(`${a.name} t'attaque et prend une case !`,"red",4500,{label:"Voir",fn:()=>focusTile(i)});}
+  }else{
+    if(isMe)logMsg(`Assaut repoussé par ${d.name}...`,"lg-war");
+    else if(d.id===0){logMsg(`Tu repousses l'assaut de ${a.name} !`,"lg-good");
+      toast(`Tu repousses ${a.name} !`,"green",3500,{label:"Voir",fn:()=>focusTile(i)});}
+  }
+  return true;
+}
+function eliminate(v,k){
+  if(!v.alive)return;
+  v.finalScore=Math.round(scoreOf(v));
+  v.alive=false;
+  if(k){
+    const loot=Math.floor(v.gold*.5); k.gold+=loot; v.gold-=loot;
+    k.oil=Math.max(k.oil,Math.min(k.oil+Math.floor(v.oil*.4),bstats(k.id).cap));
+  }
+  v.oil=0;
+  for(let i=0;i<W*H;i++)if(game.tiles[i].o===v.id){game.tiles[i].o=-1;game.tiles[i].b=0;}
+  for(const p of players)p.allies.delete(v.id);
+  v.allies.clear();
+  game.offers=game.offers.filter(o=>o.from!==v.id);
+  recomputeNet(v.id); if(k)recomputeNet(k.id); touchMap();
+  logMsg(`${v.name} est éliminé.${k?` ${k.name} pille ses réserves.`:""}`,"lg-war");
+  if(v.id===0){sfx("kill"); showDead(k);}
+  else{toast(`${v.name} est éliminé${k?` par ${k.name}`:""} !`,"gold",4500); if(k&&k.id===0)sfx("kill");}
+  const alive=players.filter(p=>p.alive);
+  if(alive.length<=1)showEnd("domination");
+}
+
+// ---------- diplomatie ----------
+function addRel(a,b,d){const p=players[a];if(!p)return;p.rel[b]=clamp((p.rel[b]??0)+d,-100,100);}
+function breakAlliance(aid,did,betrayal){
+  const a=players[aid],d=players[did];
+  a.allies.delete(did); d.allies.delete(aid);
+  if(betrayal){
+    a.betrayT=game.time;
+    addRel(did,aid,-60);
+    for(const q of players)if(q.id!==aid&&q.id!==did)addRel(q.id,aid,-20);
+    logMsg(`${a.name} TRAHIT ${d.name} ! Tous les empires s'en souviendront.`,"lg-war");
+    if(did===0)toast(`${a.name} t'a trahi !`,"red",5000);
+  }else{
+    addRel(did,aid,-20);
+    logMsg(`${a.name} rompt son pacte avec ${d.name}.`,"lg-dip");
+    if(did===0)toast(`${a.name} rompt votre alliance.`,"red");
+  }
+}
+function makeAlliance(aid,did){
+  const a=players[aid],d=players[did];
+  a.allies.add(did); d.allies.add(aid);
+  addRel(aid,did,20); addRel(did,aid,20);
+  logMsg(`${a.name} et ${d.name} scellent une alliance.`,"lg-dip");
+  if(aid===0||did===0){sfx("ally");toast(`Alliance avec ${aid===0?d.name:a.name} !`,"green");}
+}
+function relWord(r){return r<=-60?"Haineux":r<=-25?"Hostile":r<=-5?"Méfiant":r<20?"Neutre":r<45?"Cordial":r<70?"Amical":"Frère d'armes";}
+function sendOffer(from,kind,payload,txt){
+  if(game.offers.length>=3||game.offers.some(o=>o.from===from))return;
+  game.offers.push({id:game.oid++,from,kind,payload,txt,exp:game.time+45});
+  toast(`Offre de ${players[from].name} : voir l'onglet Diplo.`,"gold");
+  sfx("alert");
+}
+
+// ---------- IA des bots ----------
+function bestAnnex(p){
+  let best=-1,bs=-1e9;
+  for(let i=0;i<W*H;i++){
+    const tl=game.tiles[i];
+    if(tl.o!==-1||!isLand(i)||!isAdjOwned(i,p.id))continue;
+    let adj=0; for(const n of NB[i])if(game.tiles[n].o===p.id)adj++;
+    const s=(tl.res?100:0)+(tl.t===T.PLAIN?3:tl.t===T.FOREST?2:.5)+adj*.7-distC(i,p.city)*.12+rnd(.6);
+    if(s>bs){bs=s;best=i;}
+  }
+  return best;
+}
+function bestAttackTile(p){
+  const ap=powerOf(p), aggr=game.diff.aggr, need=1.3/aggr, truce=truceActive();
+  let best=-1,bs=-1e9;
+  for(let i=0;i<W*H;i++){
+    const tl=game.tiles[i];
+    if(tl.o<0||tl.o===p.id)continue;
+    const d=players[tl.o];
+    if(!d.alive||p.allies.has(d.id)||(d.id===0&&truce))continue;
+    if(!isLand(i)||!isAdjOwned(i,p.id))continue;
+    const dp=defenseOf(d,i);
+    if(ap<dp*need)continue;
+    let s=ap/Math.max(dp,1)*2+(tl.res?40:0);
+    if(i===d.city){ if(ap<dp*2.2/aggr)continue; s+=150; }
+    s-=(p.rel[d.id]??0)*.3;
+    if(p.pers==="warlord")s+=Math.max(0,60-d.army)*.5;
+    if(d.id===0)s+=6*(aggr-.7);
+    if(s>bs){bs=s;best=i;}
+  }
+  return best;
+}
+function connectRoad(p,target){
+  const prev=new Int32Array(W*H).fill(-2), q=[p.city]; prev[p.city]=-1;
+  for(let h=0;h<q.length;h++){
+    const c=q[h]; if(c===target)break;
+    for(const n of NB[c]){
+      const tl=game.tiles[n];
+      if(prev[n]===-2&&tl.o===p.id&&(tl.b>0||buildable(tl))){prev[n]=c;q.push(n);}
+    }
+  }
+  if(prev[target]===-2)return false;
+  for(let c=prev[target];c>=0&&c!==p.city;c=prev[c]){
+    if(game.tiles[c].b===0)return tryBuild(p.id,c,B.ROAD);
+  }
+  return false;
+}
+function aiBuild(p,st){
+  const net=netCache.get(p.id);
+  for(let i=0;i<W*H;i++){
+    const tl=game.tiles[i];
+    if(tl.o===p.id&&tl.b>0&&tl.b!==B.ROAD&&!net.has(i)){ if(connectRoad(p,i))return; break; }
+  }
+  const want=[];
+  if(st.wells>0&&p.oil>=st.cap*.85)want.push(B.WARE);
+  if(st.wells>=2&&st.refC<Math.min(3,Math.floor(st.wells/2)))want.push(B.REFINERY);
+  if(p.army>=st.armyCap*.85&&st.barrC+st.barrN<4)want.push(B.BARRACKS);
+  if((p.pers==="warlord"&&st.armsC<2)||(p.gold>600&&st.armsC+st.armsN<3))want.push(B.ARMS);
+  if(!want.length)return;
+  const type=want[0]; if(p.gold<BDEF[type].cost+50)return;
+  let best=-1,bs=-1e9;
+  for(let i=0;i<W*H;i++){
+    const tl=game.tiles[i];
+    if(tl.o!==p.id||!buildable(tl))continue;
+    let adj=false; for(const n of NB[i])if(net.has(n)){adj=true;break;}
+    if(!adj)continue;
+    const s=-distC(i,p.city)*.2+rnd(.3);
+    if(s>bs){bs=s;best=i;}
+  }
+  if(best>=0)tryBuild(p.id,best,type);
+}
+function aiMarket(p,st){
+  const price=game.price;
+  if(p.oil>=5&&(price>112||p.oil>st.cap*.8)){
+    const q=Math.floor(p.oil*(p.pers==="merchant"?.8:.5));
+    if(q>=5){marketTrade(p.id,q,true); if(q>=40&&Math.random()<.3)logMsg(`${p.name} écoule ${q} Noirium sur le marché.`,"lg-ev");}
+  }else if(price<85&&p.gold>450){
+    marketTrade(p.id,Math.min(25,Math.floor((p.gold-300)/buyUnit())),false);
+  }
+}
+function aiAttack(p){
+  p.atkCd=game.time+rnd(12,26)/game.diff.aggr;
+  if(p.army<8||p.gold<atkCost(p)+40)return;
+  const i=bestAttackTile(p); if(i<0)return;
+  tryAttack(p.id,i);
+  if(p.pers==="warlord"&&p.alive&&Math.random()<.5&&p.gold>atkCost(p)+40){
+    const j=bestAttackTile(p); if(j>=0)tryAttack(p.id,j);
+  }
+}
+function aiDiplo(p){
+  p.dipCd=game.time+rnd(35,70);
+  const M=me();
+  if(M.alive&&!p.allies.has(0)&&(p.rel[0]??0)>30&&Math.random()<.35)
+    sendOffer(p.id,"alliance",null,`${p.name} propose une alliance militaire.`);
+  else if(M.alive&&Math.random()<.45){
+    const price=game.price;
+    if(p.oil>25&&Math.random()<.5){
+      const q=Math.min(ri(10,30),Math.floor(p.oil)),u=Math.round(price*rnd(.85,1.05));
+      sendOffer(p.id,"trade",{dir:"sell",qty:q,unit:u},`${p.name} te vend ${q} Noirium à ${fmt(u)} or/u (marché : ${buyUnit()}).`);
+    }else if(p.gold>400){
+      const q=ri(10,30),u=Math.round(price*rnd(.95,1.15));
+      sendOffer(p.id,"trade",{dir:"buy",qty:q,unit:u},`${p.name} t'achète ${q} Noirium à ${fmt(u)} or/u (marché : ${sellUnit()}).`);
+    }
+  }
+  if(Math.random()<.3){
+    const o=pick(players.filter(q=>q.bot&&q.alive&&q.id!==p.id));
+    if(o&&!p.allies.has(o.id)&&(p.rel[o.id]??0)>15&&(o.rel[p.id]??0)>10)makeAlliance(p.id,o.id);
+  }
+  if(p.pers==="schemer"&&p.allies.size&&Math.random()<.12){
+    const tgt=players[pick([...p.allies])];
+    if(tgt&&tgt.alive&&powerOf(p)>powerOf(tgt)*2.2&&!(tgt.id===0&&truceActive()))breakAlliance(p.id,tgt.id,true);
+  }
+}
+function aiAct(p){
+  if(!p.alive||game.phase!=="play")return;
+  const st=bstats(p.id);
+  const mult=p.pers==="warlord"?1.6:p.pers==="merchant"?.75:1;
+  let targetA=Math.round((25+p.ownedCount*.6)*mult*game.diff.aggr*(game.time-p.lastHit<20?1.3:1));
+  targetA=Math.min(targetA,st.armyCap);
+  if(p.army<targetA&&p.gold>120){
+    const n=Math.min(20,Math.floor((p.gold-80)/ECO.soldier),targetA-p.army);
+    if(n>0){p.gold-=n*ECO.soldier;p.army+=n;}
+  }
+  let tries=p.pers==="expander"?3:2;
+  while(tries-->0){
+    const c=bestAnnex(p); if(c<0)break;
+    if(p.gold>=annexCost(p.id,c)+60)tryAnnex(p.id,c); else break;
+  }
+  aiBuild(p,bstats(p.id));
+  aiMarket(p,bstats(p.id));
+  if(game.time>p.atkCd)aiAttack(p);
+  if(p.alive&&game.time>p.dipCd)aiDiplo(p);
+}
+
+// ---------- événements aléatoires ----------
+function triggerRandomEvent(){
+  game.evNext=game.time+ri(40,65);
+  const r=Math.random();
+  if(r<.25){
+    game.price=clamp(game.price*1.45,25,260);
+    logMsg("RUPTURE D'APPROVISIONNEMENT : le Noirium flambe !","lg-ev"); toast("Le Noirium flambe : +45% ! C'est le moment de vendre.","gold");
+  }else if(r<.5){
+    game.price=clamp(game.price*.65,25,260);
+    logMsg("SURPRODUCTION MONDIALE : le Noirium s'effondre.","lg-ev"); toast("Le Noirium chute : -35%.","red");
+  }else if(r<.7){
+    for(let k=0;k<300;k++){
+      const i=ri(0,W*H-1),tl=game.tiles[i];
+      if(isLand(i)&&tl.o===-1&&!tl.res&&!players.some(p=>p.alive&&distC(i,p.city)<4)){
+        tl.res=true; touchMap(i); game.pings.push({i,t:5,c:"#e8b54a"}); break;
+      }
+    }
+    logMsg("Un nouveau gisement de Noirium a été découvert !","lg-ev"); toast("Nouveau gisement découvert (voir minimap) !","gold");
+  }else if(r<.85){
+    game.mod={income:1,extract:.5,until:game.time+25,label:"Grève des raffineries : extraction -50% (25s)"};
+    logMsg("Grève des raffineries : extraction -50% pendant 25s.","lg-ev"); toast("Grève : extraction -50% !","red");
+  }else{
+    game.mod={income:1.5,extract:1,until:game.time+25,label:"Foire de Cornera : revenus d'or +50% (25s)"};
+    logMsg("Foire de Cornera : revenus d'or +50% pendant 25s.","lg-ev"); toast("Foire de Cornera : +50% d'or !","green");
+  }
+  sfx("alert");
+}
+
+// ---------- quêtes ----------
+const QUESTS=[
+  {txt:"Annexe 6 cases.",prog:()=>`${Math.min(game.qc.annex,6)}/6`,chk:()=>game.qc.annex>=6,rew:{gold:60}},
+  {txt:"Capture un gisement de Noirium (taches noires).",prog:()=>`${Math.min(bstats(0).wells,1)}/1`,chk:()=>bstats(0).wells>=1,rew:{gold:100}},
+  {txt:"Construis un entrepôt relié à ta capitale.",prog:()=>"",chk:()=>{
+    const net=netCache.get(0); for(const i of net)if(game.tiles[i].b===B.WARE)return true; return false;},rew:{gold:80}},
+  {txt:"Vends 20 Noirium au marché.",prog:()=>`${Math.min(game.qc.sold,20)}/20`,chk:()=>game.qc.sold>=20,rew:{gold:80}},
+  {txt:"Monte ton armée à 50 soldats.",prog:()=>`${Math.min(me().army,50)}/50`,chk:()=>me().army>=50,rew:{gold:120}},
+  {txt:"Scelle une alliance.",prog:()=>`${me().allies.size}/1`,chk:()=>me().allies.size>=1,rew:{gold:150}},
+  {txt:"Amasse 1 000 or.",prog:()=>`${fmt(Math.min(me().gold,1000))}/1 000`,chk:()=>me().gold>=1000,rew:{oil:40}},
+];
+function updateQuest(){
+  if(!me().alive){setText("questTxt","Tu es spectateur.");setText("questProg","");return;}
+  if(game.qi>=QUESTS.length){setText("questTxt","Domine la carte ou survis à l'éruption !");setText("questProg","");return;}
+  const q=QUESTS[game.qi];
+  setText("questTxt",q.txt); setText("questProg",q.prog());
+}
+function questCheck(){
+  if(game.qi>=QUESTS.length||!me().alive)return;
+  const q=QUESTS[game.qi];
+  if(q.chk()){
+    if(q.rew.gold)me().gold+=q.rew.gold;
+    if(q.rew.oil)me().oil=Math.min(me().oil+q.rew.oil,bstats(0).cap);
+    toast(`Objectif accompli ! +${q.rew.gold?fmt(q.rew.gold)+" or":q.rew.oil+" Noirium"}`,"green");
+    sfx("coin"); game.qi++;
+  }
+}
+
+// ---------- volcan & fin de partie ----------
+function startEruption(){
+  game.phase="erupt"; game.eruptT=0;
+  for(const p of players)if(p.alive)p.finalScore=Math.round(scoreOf(p));
+  game.placing=null; game.sel=-1;
+  logMsg("LE VOLCAN EXPLOSE. La carte est perdue : place au classement.","lg-war");
+  toast("ÉRUPTION !","red",6000);
+  sfx("boom"); game.shake=10;
+}
+function eruptionUpdate(dt){
+  game.eruptT+=dt;
+  const R=(game.eruptT/6)*Math.hypot(W,H)+.5, vc=game.volcano;
+  for(let i=0;i<W*H;i++){
+    const tl=game.tiles[i];
+    if(tl.t===T.ASH)continue;
+    const d=distC(i,vc);
+    if(d<R){ if(d<R-2.2){tl.t=T.ASH;tl.b=0;tl.o=-1;tl.res=false;} else tl.t=T.LAVA; }
+  }
+  game.dirty=true;
+  game.shake=Math.max(game.shake,4);
+  for(let k=0;k<2;k++){
+    const [cx,cy]=worldCenter(vc);
+    game.parts.push({x:cx+rnd(-4,4),y:cy,vx:rnd(-24,24),vy:rnd(-90,-30),life:rnd(.6,1.6),max:1.6,size:2,c:pick(["#f2a13c","#ffd23f","#d0492c"])});
+  }
+  if(game.eruptT>7.2)showEnd("eruption");
+}
+function showDead(k){
+  $("deadTxt").textContent=k?`${k.name} a pris ta capitale et pillé tes réserves.`:"Un ennemi a pris ta capitale.";
+  $("deadModal").classList.remove("hidden");
+}
+function showEnd(kind){
+  if(game.phase==="over")return;
+  game.phase="over"; endTutorial(true);
+  $("deadModal").classList.add("hidden");
+  const ranked=players.map(p=>({p,score:Math.round(p.finalScore??scoreOf(p))}))
+    .sort((a,b)=>kind==="domination"&&a.p.alive!==b.p.alive?(a.p.alive?-1:1):b.score-a.score);
+  const win=ranked[0].p;
+  $("endTitle").textContent=kind==="domination"?"DOMINATION TOTALE":"L'ÉRUPTION : LA CARTE N'EST PLUS";
+  $("endSub").textContent=kind==="domination"
+    ?`${win.name} a soumis la carte avant le réveil du volcan.`
+    :`Le volcan a tout enseveli. Le classement désigne ${win.name} vainqueur.`;
+  const myScore=ranked.find(e=>e.p.id===0).score, myRank=ranked.findIndex(e=>e.p.id===0)+1;
+  let best=null; try{best=JSON.parse(store.get("noirium_best")||"null");}catch(e){}
+  let rec=`Ton score : ${fmt(myScore)} (${myRank}${myRank===1?"er":"e"})`;
+  if(!best||myScore>best.score){
+    store.set("noirium_best",JSON.stringify({score:myScore,name:me().name,diff:game.diff.label}));
+    rec+=" · NOUVEAU RECORD !";
+  }else rec+=` · Record : ${fmt(best.score)}`;
+  $("endRecord").textContent=rec;
+  const row=$("podrow"); row.innerHTML="";
+  const podConf=[{r:1,h:110,c:"#e8b54a"},{r:2,h:76,c:"#b8bcc4"},{r:3,h:54,c:"#b0703a"}];
+  for(const k of [1,0,2]){
+    const e=ranked[k]; if(!e)continue;
+    const conf=podConf[k], d=document.createElement("div"); d.className="pod";
+    d.innerHTML=`<div class="pn" style="color:${conf.c}">${e.p.name}</div><div class="ps">${fmt(e.score)}</div>
+      <div class="bar" style="height:${conf.h}px;border-color:${conf.c};color:${conf.c};background:#2a2115">${conf.r}</div>`;
+    row.appendChild(d);
+  }
+  $("rankTable").innerHTML="<tr><th>#</th><th>EMPIRE</th><th>OR</th><th>NOIRIUM</th><th>ARMÉE</th><th>CASES</th><th>SCORE</th></tr>"+
+    ranked.map((e,k)=>`<tr class="${e.p.id===0?"me":""} ${k===0?"win":""}"><td>${k+1}</td>
+      <td><span class="sw" style="background:${e.p.color}"></span> ${e.p.name}${e.p.alive?"":' <span class="tag dead">†</span>'}</td>
+      <td>${fmt(e.p.gold)}</td><td>${fmt(e.p.oil)}</td><td>${fmt(e.p.army)}</td><td>${e.p.ownedCount}</td><td><b>${fmt(e.score)}</b></td></tr>`).join("");
+  $("endScreen").classList.remove("hidden");
+  sfx(win.id===0?"ally":"kill");
+}
+
+// ---------- journal & toasts ----------
+function logMsg(txt,cls=""){
+  const box=$("logBox"), d=document.createElement("div");
+  const t=document.createElement("span"); t.className="t"; t.textContent=`[${fmtTime(game?game.time:0)}]`;
+  const s=document.createElement("span"); s.className=cls; s.textContent=txt;
+  d.append(t,s); box.prepend(d);
+  while(box.children.length>80)box.lastChild.remove();
+}
+function toast(txt,cls="",ms=3500,action){
+  const w=$("toasts"), lastT=w.lastElementChild;
+  if(lastT&&lastT._txt===txt){
+    lastT._n=(lastT._n||1)+1; lastT.querySelector(".tx").textContent=`${txt} ×${lastT._n}`;
+    clearTimeout(lastT._to); lastT._to=setTimeout(()=>lastT.remove(),ms); return;
+  }
+  while(w.children.length>=4)w.firstElementChild.remove();
+  const d=document.createElement("div"); d.className="toast "+cls; d._txt=txt;
+  const s=document.createElement("span"); s.className="tx"; s.textContent=txt; d.appendChild(s);
+  if(action){
+    const b=document.createElement("button"); b.className="btn mini"; b.textContent=action.label;
+    b.addEventListener("click",()=>{action.fn();d.remove();}); d.appendChild(b);
+  }
+  w.appendChild(d); d._to=setTimeout(()=>d.remove(),ms);
+}
+
+// ---------- caméra & rendu ----------
+const cv=$("map"), ctx=cv.getContext("2d");
+const mmCv=$("minimap"), mmCtx=mmCv.getContext("2d");
+const cam={x:0,y:0,z:2,tz:2,ax:0,ay:0,vx:0,vy:0,zmin:.5,zmax:4};
+let vw=1, vh=1, DPR=1;
+const layer=document.createElement("canvas"); layer.width=W*TS; layer.height=H*TS;
+const lg=layer.getContext("2d");
+const mmBase=document.createElement("canvas"); mmBase.width=W; mmBase.height=H;
+const TERR_RGB=["#23444d","#4e5c38","#3a4c2e","#55524a","#6e3428","#c8502e","#3c3833"].map(hexRgb);
+
+function resize(){
+  const r=cv.parentElement.getBoundingClientRect();
+  DPR=Math.min(window.devicePixelRatio||1,2);
+  vw=Math.max(1,r.width); vh=Math.max(1,r.height);
+  cv.width=Math.round(vw*DPR); cv.height=Math.round(vh*DPR);
+  const fit=Math.min(vw/(W*TS),vh/(H*TS));
+  cam.zmin=clamp(fit*.9,.35,1.5); cam.zmax=4;
+  cam.z=clamp(cam.z,cam.zmin,cam.zmax); cam.tz=clamp(cam.tz,cam.zmin,cam.zmax);
+  clampCam();
+}
+new ResizeObserver(()=>resize()).observe($("mapWrap"));
+function clampCam(){
+  const mw=W*TS,mh=H*TS,ww=vw/cam.z,wh=vh/cam.z,m=48;
+  cam.x=ww>=mw+2*m?(mw-ww)/2:clamp(cam.x,-m,mw-ww+m);
+  cam.y=wh>=mh+2*m?(mh-wh)/2:clamp(cam.y,-m,mh-wh+m);
+}
+function zoomAt(f,ax,ay){cam.tz=clamp(cam.tz*f,cam.zmin,cam.zmax);cam.ax=ax;cam.ay=ay;}
+const keys=new Set();
+function updateCamera(rdt){
+  let kx=0,ky=0;
+  if(keys.has("KeyA")||keys.has("ArrowLeft"))kx--;
+  if(keys.has("KeyD")||keys.has("ArrowRight"))kx++;
+  if(keys.has("KeyW")||keys.has("ArrowUp"))ky--;
+  if(keys.has("KeyS")||keys.has("ArrowDown"))ky++;
+  const sp=650/cam.z, k=Math.min(1,rdt*12);
+  cam.vx+=(kx*sp-cam.vx)*k; cam.vy+=(ky*sp-cam.vy)*k;
+  if(Math.abs(cam.vx)>.5||Math.abs(cam.vy)>.5){cam.x+=cam.vx*rdt; cam.y+=cam.vy*rdt; clampCam();}
+  if(Math.abs(cam.tz-cam.z)>.0005){
+    const wx=cam.ax/cam.z+cam.x, wy=cam.ay/cam.z+cam.y;
+    cam.z+=(cam.tz-cam.z)*Math.min(1,rdt*14);
+    if(Math.abs(cam.tz-cam.z)<.002)cam.z=cam.tz;
+    cam.x=wx-cam.ax/cam.z; cam.y=wy-cam.ay/cam.z; clampCam();
+  }
+}
+const screenToTile=(sx,sy)=>{
+  const wx=sx/cam.z+cam.x, wy=sy/cam.z+cam.y, tx=Math.floor(wx/TS), ty=Math.floor(wy/TS);
+  return (tx>=0&&tx<W&&ty>=0&&ty<H)?idx(tx,ty):-1;
+};
+
+function drawLayer(now){
+  lg.imageSmoothingEnabled=false;
+  if(game.dirty){ for(let i=0;i<W*H;i++)drawTile(i,now); game.dirty=false; }
+  else for(const i of game.dirtyTiles)drawTile(i,now);
+  game.dirtyTiles.clear(); game.mmDirty=true;
+}
+function drawTile(i,now){
+  const g=lg, tiles=game.tiles, tv=(now/220)|0;
+  {
+    const x=i%W, y=(i/W)|0, tl=tiles[i], X=x*TS, Y=y*TS, v0=(x*7+y*13)%4;
+    const v=tl.t===T.LAVA?(tv+x*3+y)%4:v0;
+    g.drawImage(atlas,v*TS,tl.t*TS,TS,TS,X,Y,TS,TS);
+    if(tl.res)g.drawImage(oreAtlas,v0*TS,0,TS,TS,X,Y,TS,TS);
+    const o=tl.o;
+    if(o>=0){
+      g.fillStyle=players[o].color;
+      g.globalAlpha=.3; g.fillRect(X,Y,TS,TS); g.globalAlpha=1;
+      if(x===0||tiles[i-1].o!==o)g.fillRect(X,Y,2,TS);
+      if(x===W-1||tiles[i+1].o!==o)g.fillRect(X+TS-2,Y,2,TS);
+      if(y===0||tiles[i-W].o!==o)g.fillRect(X,Y,TS,2);
+      if(y===H-1||tiles[i+W].o!==o)g.fillRect(X,Y+TS-2,TS,2);
+    }
+    if(tl.b===B.ROAD){
+      const c=n=>tiles[n].o===o&&tiles[n].b>0;
+      g.fillStyle="#8a7a5c";
+      if(x>0&&c(i-1))g.fillRect(X,Y+5,8,6);
+      if(x<W-1&&c(i+1))g.fillRect(X+8,Y+5,8,6);
+      if(y>0&&c(i-W))g.fillRect(X+5,Y,6,8);
+      if(y<H-1&&c(i+W))g.fillRect(X+5,Y+8,6,8);
+      g.fillStyle="#a08e6a"; g.fillRect(X+5,Y+5,6,6);
+    }else if(tl.b>0&&o>=0){
+      g.drawImage(buildSprite(tl.b,o),X,Y);
+    }
+  }
+}
+function renderMinimap(now){
+  if(game.mmDirty){
+    const g=mmBase.getContext("2d"),img=g.createImageData(W,H);
+    for(let i=0;i<W*H;i++){
+      const tl=game.tiles[i]; let c=TERR_RGB[tl.t];
+      let r=c[0],gg=c[1],b=c[2];
+      if(tl.res){r=20;gg=20;b=26;}
+      if(tl.o>=0){const pc=players[tl.o].rgb;r=r*.35+pc[0]*.65;gg=gg*.35+pc[1]*.65;b=b*.35+pc[2]*.65;}
+      const k=i*4; img.data[k]=r;img.data[k+1]=gg;img.data[k+2]=b;img.data[k+3]=255;
+    }
+    g.putImageData(img,0,0); game.mmDirty=false;
+  }
+  const mw=mmCv.width,mh=mmCv.height;
+  mmCtx.imageSmoothingEnabled=false;
+  mmCtx.clearRect(0,0,mw,mh);
+  mmCtx.drawImage(mmBase,0,0,mw,mh);
+  const sx=mw/(W*TS), sy=mh/(H*TS);
+  for(const p of game.pings){
+    if(((now/200)|0)%2)continue;
+    const [x,y]=worldCenter(p.i); mmCtx.fillStyle=p.c||"#ff5a3c"; mmCtx.fillRect(x*sx-3,y*sy-3,6,6);
+  }
+  mmCtx.strokeStyle="#ead9b5"; mmCtx.lineWidth=1;
+  mmCtx.strokeRect(cam.x*sx+.5,cam.y*sy+.5,(vw/cam.z)*sx,(vh/cam.z)*sy);
+}
+function render(now){
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.imageSmoothingEnabled=false;
+  ctx.fillStyle="#101a1c"; ctx.fillRect(0,0,cv.width,cv.height);
+  if(game.dirty||game.dirtyTiles.size)drawLayer(now);
+  const shk=game.shake, shx=shk>0?rnd(-shk,shk):0, shy=shk>0?rnd(-shk,shk):0;
+  const s=cam.z*DPR;
+  ctx.setTransform(s,0,0,s,Math.round((-cam.x*cam.z+shx)*DPR),Math.round((-cam.y*cam.z+shy)*DPR));
+  ctx.drawImage(layer,0,0);
+  // mode placement : cases valides
+  if(game.placing){
+    ctx.strokeStyle="#93b35c"; ctx.lineWidth=1.5; ctx.globalAlpha=.45+.35*Math.sin(now/140);
+    for(let i=0;i<W*H;i++){
+      const tl=game.tiles[i];
+      if(tl.o===0&&buildable(tl))ctx.strokeRect((i%W)*TS+1.5,((i/W)|0)*TS+1.5,TS-3,TS-3);
+    }
+    ctx.globalAlpha=1;
+  }
+  for(const f of game.flashes){
+    ctx.globalAlpha=Math.max(f.t,0)*.8; ctx.fillStyle=f.c;
+    ctx.fillRect((f.i%W)*TS,((f.i/W)|0)*TS,TS,TS);
+  }
+  ctx.globalAlpha=1;
+  for(const p of game.pings){
+    const x=(p.i%W)*TS,y=((p.i/W)|0)*TS,r=4+((now/60)%12);
+    ctx.strokeStyle=p.c||"#ff5a3c"; ctx.lineWidth=1.5; ctx.globalAlpha=Math.min(1,p.t)*.8;
+    ctx.strokeRect(x+8-r,y+8-r,r*2,r*2);
+  }
+  ctx.globalAlpha=1;
+  if(game.sel>=0){
+    ctx.strokeStyle="#ffffff"; ctx.lineWidth=2; ctx.globalAlpha=.55+.45*Math.sin(now/180);
+    ctx.strokeRect((game.sel%W)*TS+1,((game.sel/W)|0)*TS+1,TS-2,TS-2); ctx.globalAlpha=1;
+  }
+  const hv=game.hover;
+  if(hv>=0&&hv!==game.sel&&!drag?.moved){
+    const tl=game.tiles[hv]; let col="rgba(234,217,181,.6)";
+    if(me().alive&&game.phase==="play"&&!game.placing){
+      if(tl.o===-1&&isLand(hv)&&isAdjOwned(hv,0))col="#b9d389";
+      else if(tl.o>0&&isAdjOwned(hv,0)&&!me().allies.has(tl.o))col="#ff7a5c";
+    }
+    ctx.strokeStyle=col; ctx.lineWidth=1.5;
+    ctx.strokeRect((hv%W)*TS+1,((hv/W)|0)*TS+1,TS-2,TS-2);
+  }
+  for(const p of game.parts){
+    ctx.globalAlpha=Math.max(p.life/p.max,0)*.6;
+    ctx.fillStyle=p.c; ctx.fillRect(p.x,p.y,p.size,p.size);
+  }
+  ctx.globalAlpha=1;
+  // espace écran : noms & textes flottants
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.textAlign="center"; ctx.textBaseline="alphabetic";
+  if(cam.z>=.9){
+    ctx.font="10px Silkscreen, monospace";
+    for(const p of players){
+      if(!p.alive)continue;
+      const [wx,wy]=worldCenter(p.city);
+      const x=Math.round((wx-cam.x)*cam.z), y=Math.round((wy-8-cam.y)*cam.z)-4;
+      if(x<-60||x>vw+60||y<-20||y>vh+20)continue;
+      const tw=ctx.measureText(p.name).width;
+      ctx.fillStyle="rgba(12,9,6,.8)"; ctx.fillRect(x-tw/2-3,y-10,tw+6,13);
+      ctx.fillStyle=p.color; ctx.fillText(p.name,x,y);
+    }
+  }
+  ctx.font="20px VT323, monospace"; ctx.lineWidth=3; ctx.strokeStyle="#0c0906";
+  for(const f of game.floats){
+    const x=(f.x-cam.x)*cam.z, y=(f.y-cam.y)*cam.z-(1.4-f.t)*34-8;
+    ctx.globalAlpha=clamp(f.t/.5,0,1);
+    ctx.strokeText(f.txt,x,y); ctx.fillStyle=f.c; ctx.fillText(f.txt,x,y);
+  }
+  ctx.globalAlpha=1; ctx.textAlign="left";
+  renderMinimap(now);
+}
+
+// ---------- UI : mises à jour sans casser les clics ----------
+let tab="build", diploOpen=-1, armedBreak=-1, uiDownEl=null;
+document.addEventListener("pointerdown",e=>{uiDownEl=e.target;},true);
+document.addEventListener("pointerup",()=>{setTimeout(()=>{uiDownEl=null;},0);},true);
+function setText(id,t){const el=$(id); if(el&&el.textContent!==t)el.textContent=t;}
+function setHTML(el,html,force){
+  if(el._h===html)return;
+  if(!force){
+    if(uiDownEl&&el.contains(uiDownEl))return;
+    const ae=document.activeElement; if(ae&&ae.tagName==="INPUT"&&el.contains(ae))return;
+  }
+  el.innerHTML=html; el._h=html;
+}
+function updateCostButtons(){
+  const p=me(), ok=p.alive&&game.phase==="play";
+  document.querySelectorAll("#side [data-cost]").forEach(b=>{
+    const dis=!ok||p.gold<+b.dataset.cost; if(b.disabled!==dis)b.disabled=dis;
+  });
+}
+let lastArrowUp=null;
+function updateHUD(){
+  const p=me(),st=bstats(0);
+  setText("hGold",fmt(p.gold));
+  const net=p.alive?incomeOf(p)-p.army*ECO.upkeep:0;
+  setText("hInc",`${net>=0?"+":""}${net.toFixed(1)}/s`);
+  setText("hOil",fmt(Math.floor(p.oil)));
+  setText("hCap",`/ ${fmt(st.cap)}${p.full?" PLEIN":""}`);
+  $("hCap").style.color=p.full?"var(--red)":"";
+  setText("hArmy",`${p.army}/${st.armyCap}`);
+  setText("hLand",String(p.ownedCount));
+  setText("hPrice",String(Math.round(game.price)));
+  const h=game.hist, up=h.length<6||game.price>=h[h.length-6];
+  if(up!==lastArrowUp){lastArrowUp=up;drawArrow($("priceIco"),up);drawArrow($("priceArrow"),up);
+    $("hPrice").style.color=up?"var(--green)":"var(--red)";}
+  const tr=game.phase==="play"&&truceActive();
+  $("truceStat").classList.toggle("hidden",!tr);
+  if(tr)setText("hTruce",fmtTime(game.truce-game.time));
+  const left=Math.max(0,GAME_LEN-game.time), tEl=$("hudTimer");
+  if(game.phase!=="play"){setText("hudTimer","ÉRUPTION");tEl.className="crit";}
+  else{setText("hudTimer",fmtTime(left)); const c=left<=60?"crit":left<=300?"warn":""; if(tEl.className!==c)tEl.className=c;}
+  $("timerFill").style.width=(clamp(left/GAME_LEN,0,1)*100).toFixed(1)+"%";
+  setText("speedBtn","x"+game.speed);
+  $("pauseTag").classList.toggle("hidden",!game.paused);
+  setText("pauseBtn",game.paused?"Reprendre":"Pause");
+  const ob=$("offerBadge"); ob.classList.toggle("hidden",!game.offers.length); setText("offerBadge",String(game.offers.length));
+  updateQuest();
+}
+function bName(b){return b===B.CITY?"Capitale":BDEF[b].name;}
+function updateCtx(force){
+  const el=$("ctxPanel"), p=me();
+  let html;
+  if(!p.alive){
+    html=`<div class="tt">SPECTATEUR</div><div class="dim">Ton empire est tombé. Accélère avec <b>F</b> pour voir la fin.</div>`;
+  }else if(game.placing){
+    const d=BDEF[game.placing];
+    html=`<div class="tt">POSE : ${d.name.toUpperCase()} (${d.cost} or)</div>
+      <div class="dim">Clique une case libre de ton territoire (contour vert).${game.placing===B.ROAD?"<br>Maintiens et glisse pour tracer plusieurs routes.":""}</div>
+      <div style="margin-top:6px;"><button class="btn mini red" data-act="a:cancel">Annuler (Échap)</button></div>`;
+  }else if(game.sel<0){
+    html=`<div class="tt">${p.name.toUpperCase()}</div>
+      <div class="dim">Clique une case voisine pour l'<span class="greent">annexer</span>, une case ennemie pour l'<span class="redt">attaquer</span>,
+      une de tes cases pour <span class="goldt">construire</span>.</div>`;
+  }else{
+    const i=game.sel, tl=game.tiles[i], adj=isAdjOwned(i,0);
+    html=`<div class="tt">${TERR_NAMES[tl.t].toUpperCase()}${tl.res?" · GISEMENT DE NOIRIUM":""}</div>`;
+    if(tl.o===-1){
+      if(!isLand(i))html+=`<div class="dim">Case inexploitable.</div>`;
+      else if(adj){const c=annexCost(0,i);
+        html+=`<div class="row">Terre neutre. Annexion : <b class="goldt">${c} or</b></div>
+          <button class="btn mini green" data-act="a:annex" data-cost="${c}">Annexer</button>`;}
+      else html+=`<div class="dim">Terre neutre, trop loin : étends-toi jusqu'ici.</div>`;
+    }else if(tl.o===0){
+      if(tl.b===B.CITY){
+        const st=bstats(0);
+        html+=`<div class="row">Ta capitale. Revenu <b class="greent">+${incomeOf(p).toFixed(1)}</b>/s · entretien <span class="redt">-${(p.army*ECO.upkeep).toFixed(1)}</span>/s</div>
+          <div class="dim">Gisements : ${st.wells} · extraction ${(st.extract*game.mod.extract).toFixed(2)}/s · raffineries ${st.refC}</div>`;
+      }else if(tl.b===B.ROAD){
+        html+=`<div class="dim">Route ${isConnected(0,i)?'<span class="greent">reliée</span>':'<span class="redt">hors réseau</span>'}.</div>
+          <button class="btn mini red" data-act="a:demo">Démolir</button>`;
+      }else if(tl.b>0){
+        const d=BDEF[tl.b],on=isConnected(0,i);
+        html+=`<div class="row"><b>${d.name}</b> : ${on?'<span class="greent">relié, plein effet</span>':'<span class="redt">isolé, effet /2. Pose des routes !</span>'}</div>
+          <button class="btn mini red" data-act="a:demo">Démolir (+${Math.round(d.cost*.3)} or)</button>`;
+      }else if(buildable(tl)){
+        html+=`<div class="dim">Ta terre. Construire :</div>`;
+        for(const k of BUILD_ORDER)html+=`<button class="btn mini" data-act="a:b:${k}" data-cost="${BDEF[k].cost}">${BDEF[k].name} ${BDEF[k].cost}</button> `;
+      }else html+=`<div class="dim">Ta terre (montagne : on ne peut pas y construire).</div>`;
+    }else{
+      const d=players[tl.o];
+      html+=`<div class="row"><span class="sw" style="background:${d.color}"></span> <b>${d.name}</b> ${p.allies.has(d.id)?'<span class="tag ally">ALLIÉ</span>':""}${i===d.city?' <span class="tag traitor">CAPITALE</span>':""}</div>`;
+      if(!adj)html+=`<div class="dim">Pas de frontière commune ici.</div>`;
+      else if(p.allies.has(d.id))html+=`<div class="dim">Allié. Romps le pacte dans l'onglet Diplo pour attaquer.</div>`;
+      else if(truceActive())html+=`<div class="tealt">Trêve encore ${fmtTime(game.truce-game.time)}.</div>`;
+      else{
+        const ap=powerOf(p), dp=defenseOf(d,i), ch=winChance(ap,dp), c=atkCost(p);
+        html+=`<div class="row">Force <b class="greent">${Math.round(ap)}</b> vs défense <b class="redt">${Math.round(dp)}</b> · chance <b class="${ch>=.5?"greent":"redt"}">${Math.round(ch*100)}%</b></div>
+          <button class="btn mini red" data-act="a:atk" data-cost="${c}">Attaquer (${c} or)</button>`;
+      }
+    }
+  }
+  setHTML(el,html,force);
+}
+function buildBuildTab(){
+  let html=`<div class="card">
+    <div class="nm">ARMÉE <span id="armyNow" class="goldt"></span> <span class="dim">· puissance</span> <span id="armyPow" class="tealt"></span></div>
+    <div class="ds">Entretien <span id="armyUp"></span> · 20 or/soldat · assaut <span id="armyAtk"></span> or</div>
+    <button class="btn mini" data-act="rec:5" data-cost="100">+5 (100)</button>
+    <button class="btn mini" data-act="rec:25" data-cost="500">+25 (500)</button>
+    <button class="btn mini green" data-act="rec:max" data-cost="20">MAX</button><kbd>R</kbd></div>
+    <div class="sect">BÂTIMENTS</div>`;
+  BUILD_ORDER.forEach((k,n)=>{
+    const d=BDEF[k];
+    html+=`<div class="card"><div class="brow"><span class="nm">${d.name}<kbd>${n+1}</kbd></span><span class="goldt">${d.cost} or</span></div>
+      <div class="ds">${d.desc}</div>
+      <button class="btn mini" data-act="b:place:${k}" data-cost="${d.cost}">Placer sur la carte</button></div>`;
+  });
+  html+=`<div class="dim" style="font-size:16px;">Astuce : un bâtiment doit toucher ta capitale ou une route pour être « relié ».</div>`;
+  $("tab-build").innerHTML=html; $("tab-build")._h=null;
+}
+function updateBuildUI(){
+  const p=me(),st=bstats(0);
+  setText("armyNow",`${p.army} / ${st.armyCap}`);
+  setText("armyPow",String(Math.round(powerOf(p))));
+  setText("armyUp",`-${(p.army*ECO.upkeep).toFixed(1)} or/s`);
+  setText("armyAtk",String(atkCost(p)));
+}
+let sparkVer=-1;
+function updateMarketUI(){
+  const p=me();
+  setText("priceBig",String(Math.round(game.price)));
+  setText("spreadLine",`Achat ${buyUnit()} · Vente ${sellUnit()} · Stock ${Math.floor(p.oil)}/${bstats(0).cap}`);
+  setText("eventLine",game.mod.until>game.time?game.mod.label:"Marché calme.");
+  const q=Math.max(1,Math.floor(+$("qty").value||0));
+  const sq=Math.min(q,Math.floor(p.oil)), bq=Math.max(0,Math.min(q,Math.floor(p.gold/buyUnit()),Math.floor(bstats(0).cap-p.oil)));
+  setHTML($("mEst"),`Vendre ${sq} → <b class="greent">+${fmt(sq*sellUnit())} or</b><br>Acheter ${bq} → <b class="goldt">-${fmt(bq*buyUnit())} or</b>`,true);
+  if(sparkVer!==game.histVer){
+    sparkVer=game.histVer;
+    const c=$("spark"),g=c.getContext("2d");
+    g.clearRect(0,0,c.width,c.height);
+    const h=game.hist.slice(-140),mn=Math.min(...h,100)*.95,mx=Math.max(...h,100)*1.05;
+    const Y=v=>c.height-(v-mn)/(mx-mn)*c.height;
+    g.strokeStyle="#3a3020"; g.beginPath(); g.moveTo(0,Y(100)); g.lineTo(c.width,Y(100)); g.stroke();
+    g.strokeStyle="#e8b54a"; g.lineWidth=2; g.beginPath();
+    h.forEach((v,k)=>{const x=k/(h.length-1||1)*c.width; k?g.lineTo(x,Y(v)):g.moveTo(x,Y(v));});
+    g.stroke(); g.lineWidth=1;
+  }
+}
+function updateDiploUI(force){
+  const p=me();
+  let oh="";
+  if(game.offers.length){
+    oh+=`<div class="sect">OFFRES REÇUES</div>`;
+    for(const o of game.offers)
+      oh+=`<div class="card offer"><div class="nm">${players[o.from].name} <span class="dim" data-exp="${o.id}"></span></div>
+        <div class="ds">${o.txt}</div>
+        <button class="btn mini green" data-act="of:acc:${o.id}">Accepter</button>
+        <button class="btn mini red" data-act="of:rej:${o.id}">Refuser</button></div>`;
+  }
+  setHTML($("dOffers"),oh,force);
+  document.querySelectorAll("[data-exp]").forEach(s=>{
+    const o=game.offers.find(x=>x.id===+s.dataset.exp); if(o)s.textContent=`(${Math.max(0,Math.ceil(o.exp-game.time))}s)`;
+  });
+  const ranked=players.map(q=>({q,s:q.finalScore??scoreOf(q)})).sort((a,b)=>b.s-a.s);
+  setHTML($("dRank"),`<div class="sect">CLASSEMENT EN DIRECT</div><table class="mini">${ranked.map((e,k)=>
+    `<tr class="${e.q.id===0?"me":""}"><td>${k+1}</td><td><span class="sw" style="background:${e.q.color}"></span> ${e.q.name}${e.q.alive?"":" †"}</td><td style="text-align:right">${fmt(Math.round(e.s/10)*10)}</td></tr>`).join("")}</table>`,force);
+  let html=`<div class="sect">EMPIRES</div>`;
+  for(const q of players){
+    if(q.id===0)continue;
+    const r=Math.round(q.rel[0]??0), ally=p.allies.has(q.id);
+    html+=`<div class="card">
+      <div class="brow"><span><span class="sw" style="background:${q.color}"></span>
+      <span class="nm">${q.name}</span> <span class="dim">(${PERS_TXT[q.pers]})</span>
+      ${ally?'<span class="tag ally">ALLIÉ</span>':""}${game.time-q.betrayT<120?'<span class="tag traitor">TRAÎTRE</span>':""}${!q.alive?'<span class="tag dead">†</span>':""}</span></div>`;
+    if(q.alive){
+      html+=`<div class="brow" style="margin:3px 0;"><span class="dim">${relWord(r)} · armée ≈ ${Math.round(q.army/5)*5}</span>
+        <span class="relbar"><div style="width:${(r+100)/2}%;background:${r>=0?"var(--green)":"var(--red)"}"></div></span></div>`;
+      if(p.alive){
+        if(ally)html+=`<button class="btn mini red" data-act="d:betray:${q.id}">Trahir</button>
+          <button class="btn mini" data-act="d:break:${q.id}">Rompre</button>
+          <button class="btn mini" data-act="d:trade:${q.id}">Vendre</button>`;
+        else html+=`<button class="btn mini green" data-act="d:ally:${q.id}" data-cost="50">Alliance (50)</button>
+          <button class="btn mini" data-act="d:gift:${q.id}" data-cost="100">Cadeau (100)</button>
+          <button class="btn mini" data-act="d:trade:${q.id}">Vendre</button>`;
+        if(diploOpen===q.id){
+          const u=Math.round(game.price*(ally?1.08:1)), tq=game.tradeQty[q.id]||10;
+          html+=`<div class="trade">
+            <div class="brow"><span>Je lui vends</span><input type="number" id="tq${q.id}" value="${tq}" min="1" style="width:70px"><span>Noirium</span></div>
+            <div class="dim">à ${u} or/u${ally?" (bonus allié)":""} · marché : ${sellUnit()}</div>
+            <button class="btn mini green" data-act="t:send:${q.id}">Proposer</button>
+            <button class="btn mini" data-act="d:trade:${q.id}">Fermer</button></div>`;
+        }
+      }
+    }
+    html+=`</div>`;
+  }
+  setHTML($("dEmp"),html,force);
+}
+function tipHTML(i){
+  const tl=game.tiles[i], p=me();
+  if(game.placing)return tl.o===0&&buildable(tl)?`<span class="greent">Construire : ${BDEF[game.placing].name}</span>`:`<span class="redt">Case invalide</span>`;
+  let s=TERR_NAMES[tl.t]+(tl.res?" · <b>Noirium</b>":"");
+  if(!p.alive||game.phase!=="play")return s;
+  if(tl.o===-1){
+    if(!isLand(i))return s;
+    if(isAdjOwned(i,0)){const c=annexCost(0,i);return `${s}<br><span class="${p.gold>=c?"greent":"redt"}">Clic : annexer (${c} or)</span>`;}
+    return `${s}<br><span class="dim">Trop loin</span>`;
+  }
+  if(tl.o===0)return `${s}${tl.b>0?" · "+bName(tl.b):""}<br><span class="dim">Ton territoire</span>`;
+  const d=players[tl.o]; s+=`<br><span style="color:${d.color}">${d.name}</span>`;
+  if(!isAdjOwned(i,0))return s+` <span class="dim">(pas de frontière)</span>`;
+  if(p.allies.has(d.id))return s+` <span class="greent">(allié)</span>`;
+  if(truceActive())return s+`<br><span class="tealt">Trêve : ${fmtTime(game.truce-game.time)}</span>`;
+  const ch=winChance(powerOf(p),defenseOf(d,i));
+  return s+`<br><span class="${ch>=.5?"greent":"redt"}">Clic : attaquer · ${Math.round(ch*100)}% · ${atkCost(p)} or</span>`;
+}
+const mouse={x:0,y:0,inside:false};
+let tipKey="";
+function updateTip(){
+  const el=$("tip");
+  if(!mouse.inside||game.hover<0||game.tut||(drag&&drag.moved)){ if(!el.classList.contains("hidden"))el.classList.add("hidden"); tipKey=""; return; }
+  const html=tipHTML(game.hover);
+  if(html!==tipKey){el.innerHTML=html; tipKey=html;}
+  el.classList.remove("hidden");
+  const w=el.offsetWidth,h=el.offsetHeight;
+  let x=mouse.x+16,y=mouse.y+18;
+  if(x+w>vw-4)x=mouse.x-w-12; if(y+h>vh-4)y=mouse.y-h-12;
+  el.style.transform=`translate(${Math.round(x)}px,${Math.round(y)}px)`;
+}
+function refreshUI(force){
+  updateHUD(); updateCtx(force);
+  if(tab==="build")updateBuildUI();
+  else if(tab==="market")updateMarketUI();
+  else if(tab==="diplo")updateDiploUI(force);
+  updateCostButtons();
+}
+function setTab(t){
+  tab=t; diploOpen=-1;
+  document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("on",x.dataset.tab===t));
+  document.querySelectorAll(".tabc").forEach(x=>x.classList.toggle("hidden",x.id!=="tab-"+t));
+  if(t==="market")sparkVer=-1;
+  if(game)refreshUI(true);
+}
+
+// ---------- tutoriel ----------
+function tutWell(){
+  let best=-1,bd=1e9;
+  for(let i=0;i<W*H;i++)if(game.tiles[i].res){const d=distC(i,me().city);if(d<bd){bd=d;best=i;}}
+  return best>=0?best:me().city;
+}
+function tutNeighbour(){
+  const w=tutWell(); let best=-1,bd=1e9;
+  for(let i=0;i<W*H;i++){
+    const tl=game.tiles[i];
+    if(tl.o===-1&&isLand(i)&&isAdjOwned(i,0)){const d=distC(i,w);if(d<bd){bd=d;best=i;}}
+  }
+  return best>=0?best:me().city;
+}
+const TUT=[
+  {txt:"Voici ta <b class='goldt'>capitale</b>. Si elle tombe, tu as perdu.",tile:()=>me().city},
+  {txt:"Clique une case <b class='greent'>voisine</b> de ton territoire pour l'annexer. Ça coûte un peu d'or.",tile:tutNeighbour},
+  {txt:"Les taches noires, c'est du <b>Noirium</b>. Annexe-les : il s'extrait tout seul.",tile:tutWell},
+  {txt:"Vends ton Noirium au <b class='goldt'>Marché</b> quand le prix est haut.",el:()=>document.querySelector('#tabs [data-tab="market"]')},
+  {txt:"Recrute une <b>armée</b> ici. Ensuite, clique une case ennemie pour l'attaquer.",el:()=>{setTab("build");return document.querySelector("#tab-build .card");}},
+  {txt:"Dans <b class='redt'>15 minutes</b>, le volcan explose. Le meilleur score gagne. Bonne chance !",el:()=>$("timerBox")},
+];
+function startTutorial(){
+  $("side").classList.remove("collapsed");
+  game.tut={step:0,tile:-1,el:null};
+  $("tutRing").classList.remove("hidden"); $("tutBox").classList.remove("hidden");
+  showTutStep();
+}
+function showTutStep(){
+  const t=game.tut, s=TUT[t.step];
+  if(s.tile){t.tile=s.tile();t.el=null;cam.z=cam.tz=clamp(2.2,cam.zmin,cam.zmax);focusTile(t.tile);}
+  else{t.tile=-1;t.el=s.el();}
+  $("tutStep").textContent=`TUTORIEL · ${t.step+1}/${TUT.length}`;
+  $("tutTxt").innerHTML=s.txt;
+  $("tutNext").textContent=t.step===TUT.length-1?"C'est parti !":"Suivant";
+  positionTut();
+}
+function tutAdvance(){
+  if(!game||!game.tut)return;
+  sfx("click");
+  if(++game.tut.step>=TUT.length)endTutorial();
+  else showTutStep();
+}
+function endTutorial(silent){
+  if(!game||!game.tut)return;
+  game.tut=null;
+  $("tutRing").classList.add("hidden"); $("tutBox").classList.add("hidden");
+  store.set("noirium_tuto","1");
+  if(!silent){focusTile(me().city); toast("À toi de jouer : annexe les cases autour de ta capitale !","gold",5000);}
+}
+function positionTut(){
+  const t=game.tut; if(!t)return;
+  let r;
+  if(t.tile>=0){
+    const cr=cv.getBoundingClientRect(), sz=TS*cam.z;
+    r={x:cr.left+((t.tile%W)*TS-cam.x)*cam.z-6,y:cr.top+(((t.tile/W)|0)*TS-cam.y)*cam.z-6,w:sz+12,h:sz+12};
+  }else if(t.el){
+    const b=t.el.getBoundingClientRect(); r={x:b.left-4,y:b.top-4,w:b.width+8,h:b.height+8};
+  }else return;
+  const ring=$("tutRing").style;
+  ring.left=r.x+"px"; ring.top=r.y+"px"; ring.width=r.w+"px"; ring.height=r.h+"px";
+  const box=$("tutBox"), bw=box.offsetWidth, bh=box.offsetHeight;
+  let y=r.y+r.h+12; if(y+bh>innerHeight-8)y=Math.max(8,r.y-bh-12);
+  const x=clamp(r.x+r.w/2-bw/2,8,innerWidth-bw-8);
+  box.style.left=x+"px"; box.style.top=y+"px";
+}
+$("tutNext").addEventListener("click",tutAdvance);
+$("tutSkip").addEventListener("click",()=>{sfx("click");endTutorial();});
+
+// ---------- actions du joueur ----------
+function startPlacing(k){
+  if(!me().alive||game.phase!=="play")return;
+  game.placing=+k; game.sel=-1; sfx("click");
+  if(tab!=="build"&&innerWidth<=760)$("side").classList.add("collapsed");
+  refreshUI(true);
+}
+function recruit(n){
+  const p=me(),st=bstats(0), room=st.armyCap-p.army, afford=Math.floor(p.gold/ECO.soldier);
+  if(room<=0){sfx("err");toast("Armée au maximum : construis une caserne !","red");return;}
+  n=n==="max"?Math.min(room,afford):Math.min(+n,room);
+  if(n<1||afford<n){sfx("err");toast("Pas assez d'or pour recruter.","red");return;}
+  p.gold-=n*ECO.soldier; p.army+=n; sfx("coin");
+  floatTxt(p.city,`+${n} soldats`,"#b9d389");
+}
+function doAct(actStr){
+  const act=actStr.split(":"), A=act[0], X=act[1], Y=act[2], p=me();
+  if(game.phase!=="play")return;
+  if(!p.alive){toast("Tu es spectateur.","red");return;}
+  if(A==="b"&&X==="place")startPlacing(Y);
+  else if(A==="rec")recruit(X);
+  else if(A==="m"){
+    if(X==="q"){$("qty").value=Y==="max"?Math.max(1,Math.floor(p.oil)):Y;}
+    else{
+      const sell=X==="sell", q=Math.max(1,Math.floor(+$("qty").value||0));
+      const before=p.oil, got=marketTrade(0,q,sell), moved=Math.abs(Math.round(p.oil-before));
+      if(got>0){
+        if(sell){game.qc.sold+=moved;sfx("sell");toast(`Vendu ${moved} Noirium : +${fmt(got)} or`,"green");}
+        else{sfx("buy");toast(`Acheté ${moved} Noirium : -${fmt(got)} or`,"gold");}
+      }else{sfx("err");toast(sell?"Aucun Noirium à vendre.":(bstats(0).cap-p.oil<1?"Stock plein : construis un entrepôt.":"Pas assez d'or."),"red");}
+    }
+  }
+  else if(A==="d"){
+    const o=+Y, bot=players[o]; if(!bot||!bot.alive)return;
+    if(X==="ally"){
+      if(p.gold<50)return; p.gold-=50;
+      const prob=.15+(bot.rel[0]??0)/150+(bot.pers==="merchant"?.1:0)-(game.time-bot.lastHit<60?.3:0);
+      if(Math.random()<prob)makeAlliance(0,o);
+      else{addRel(o,0,-3);logMsg(`${bot.name} décline ton offre d'alliance.`,"lg-dip");toast(`${bot.name} refuse ton alliance. Offre-lui un cadeau d'abord ?`,"red");sfx("err");}
+    }else if(X==="gift"){
+      if(p.gold<100)return; p.gold-=100; bot.gold+=100;
+      addRel(o,0,ri(10,15)); logMsg(`Tu offres 100 or à ${bot.name}.`,"lg-dip"); sfx("coin");
+      toast(`${bot.name} apprécie ton cadeau.`,"green");
+    }else if(X==="trade"){diploOpen=diploOpen===o?-1:o;}
+    else if(X==="break"){
+      if(armedBreak===o){breakAlliance(0,o,false);armedBreak=-1;}
+      else{armedBreak=o;toast("Re-clique « Rompre » pour confirmer.","red");setTimeout(()=>{armedBreak=-1;},3000);}
+    }else if(X==="betray"){
+      if(truceActive()){sfx("err");toast("Pas de trahison pendant la trêve.","red");return;}
+      breakAlliance(0,o,true);
+      let got=-1;
+      for(let i=0;i<W*H;i++)if(game.tiles[i].o===o&&i!==bot.city&&isAdjOwned(i,0)){got=i;break;}
+      if(got>=0){captureTile(p,got);floatTxt(got,"Trahison !","#e8927e");}
+      toast("Trahison accomplie. Ta réputation en souffre.","red"); sfx("kill");
+    }
+  }
+  else if(A==="t"){
+    const o=+Y, bot=players[o], q=Math.max(1,Math.floor(game.tradeQty[o]||10)), ally=p.allies.has(o);
+    const u=Math.round(game.price*(ally?1.08:1)), gain=q*u;
+    if(p.oil<q){sfx("err");toast("Pas assez de Noirium.","red");return;}
+    if(bot.gold<gain){sfx("err");toast(`${bot.name} n'a pas les fonds.`,"red");return;}
+    const prob=.5+(bot.rel[0]??0)/200+(bot.pers==="merchant"?.15:0)+(ally?.2:0);
+    if(Math.random()<prob){
+      p.oil-=q;p.gold+=gain;bot.gold-=gain;bot.oil+=q;addRel(o,0,5);game.qc.sold+=q;
+      logMsg(`Tu vends ${q} Noirium à ${bot.name} pour ${fmt(gain)} or.`,"lg-dip");
+      toast(`Marché conclu : +${fmt(gain)} or !`,"green"); sfx("coin"); diploOpen=-1;
+    }else{addRel(o,0,-3);toast(`${bot.name} n'est pas intéressé.`,"red");sfx("err");}
+  }
+  else if(A==="of"){
+    const o=game.offers.find(x=>x.id===+X); if(!o)return;
+    game.offers=game.offers.filter(x=>x!==o);
+    const bot=players[o.from];
+    if(Y==="acc"){
+      if(o.kind==="alliance")makeAlliance(0,o.from);
+      else{
+        const {dir,qty,unit}=o.payload, gain=qty*unit;
+        if(dir==="sell"){
+          const room=Math.floor(bstats(0).cap-p.oil);
+          if(bot.oil<qty||p.gold<gain)toast("Offre caduque : ressources insuffisantes.","red");
+          else if(room<qty)toast("Pas assez de place dans tes entrepôts.","red");
+          else{bot.oil-=qty;bot.gold+=gain;p.gold-=gain;p.oil+=qty;addRel(o.from,0,5);
+            logMsg(`Tu achètes ${qty} Noirium à ${bot.name} pour ${fmt(gain)} or.`,"lg-dip");toast(`+${qty} Noirium`,"green");sfx("coin");}
+        }else{
+          if(p.oil<qty||bot.gold<gain)toast("Offre caduque : ressources insuffisantes.","red");
+          else{p.oil-=qty;p.gold+=gain;bot.gold-=gain;bot.oil+=qty;addRel(o.from,0,5);game.qc.sold+=qty;
+            logMsg(`Tu vends ${qty} Noirium à ${bot.name} pour ${fmt(gain)} or.`,"lg-dip");toast(`+${fmt(gain)} or`,"green");sfx("sell");}
+        }
+      }
+    }else{addRel(o.from,0,-3);logMsg(`Tu déclines l'offre de ${bot.name}.`,"lg-dip");}
+  }
+  else if(A==="a"){
+    if(X==="cancel"){game.placing=null;}
+    else if(X==="annex")tryAnnex(0,game.sel);
+    else if(X==="atk")tryAttack(0,game.sel);
+    else if(X==="demo")demolish(0,game.sel);
+    else if(X==="b")tryBuild(0,game.sel,+Y);
+  }
+  refreshUI(true);
+}
+$("side").addEventListener("click",e=>{
+  if(!game)return;
+  const tb=e.target.closest("[data-tab]");
+  if(tb){setTab(tb.dataset.tab);sfx("click");return;}
+  if(e.target.closest("#sideToggle")){
+    const s=$("side"); s.classList.toggle("collapsed");
+    setText("sideToggle",s.classList.contains("collapsed")?"▲ Panneau":"▼ Panneau"); return;
+  }
+  const b=e.target.closest("[data-act]"); if(!b)return;
+  doAct(b.dataset.act);
+});
+$("side").addEventListener("input",e=>{
+  if(!game)return;
+  const m=e.target.id.match(/^tq(\d+)$/); if(m)game.tradeQty[+m[1]]=Math.max(1,Math.floor(+e.target.value||0));
+});
+
+// ---------- entrées carte : souris & tactile ----------
+const pointers=new Map();
+let drag=null, pinch=null;
+function localXY(e){const r=cv.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top];}
+function handleTap(i){
+  if(!game||game.tut||i<0)return;
+  const p=me(), tl=game.tiles[i];
+  if(game.phase!=="play"||!p.alive){game.sel=i;refreshUI(true);return;}
+  if(game.placing){
+    if(tl.o===0&&buildable(tl)){ if(tryBuild(0,i,game.placing)&&game.placing!==B.ROAD)game.placing=null; }
+    else{sfx("err");toast("Choisis une case libre de ton territoire (contour vert).","red");}
+    refreshUI(true); return;
+  }
+  game.sel=i;
+  if(tl.o===-1&&isLand(i)&&isAdjOwned(i,0))tryAnnex(0,i);
+  else if(tl.o>0&&isAdjOwned(i,0))tryAttack(0,i);
+  else if(tl.o===-1&&isLand(i)){sfx("err");toast("Trop loin : annexe d'abord les cases entre toi et cette terre.","red");}
+  else sfx("click");
+  refreshUI(true);
+}
+cv.addEventListener("pointerdown",e=>{
+  if(!game)return;
+  try{cv.setPointerCapture(e.pointerId);}catch(_){}
+  const [x,y]=localXY(e);
+  pointers.set(e.pointerId,{x,y});
+  if(pointers.size===1){
+    drag={id:e.pointerId,sx:x,sy:y,cx:cam.x,cy:cam.y,moved:false,button:e.button,touch:e.pointerType!=="mouse",
+      paint:game.placing===B.ROAD&&e.button===0&&e.pointerType==="mouse"&&!game.tut,last:-1};
+    if(drag.paint){const i=screenToTile(x,y); drag.last=i; handleTap(i);}
+  }else if(pointers.size===2){
+    drag=null;
+    const [a,b]=[...pointers.values()], mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
+    pinch={d:Math.hypot(a.x-b.x,a.y-b.y)||1,z:cam.z,wx:mx/cam.z+cam.x,wy:my/cam.z+cam.y};
+  }
+});
+cv.addEventListener("pointermove",e=>{
+  if(!game)return;
+  const [x,y]=localXY(e);
+  if(e.pointerType==="mouse"){mouse.x=x;mouse.y=y;mouse.inside=true;}
+  if(pointers.has(e.pointerId))pointers.set(e.pointerId,{x,y});
+  if(pinch&&pointers.size===2){
+    const [a,b]=[...pointers.values()], mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
+    cam.z=cam.tz=clamp(pinch.z*Math.hypot(a.x-b.x,a.y-b.y)/pinch.d,cam.zmin,cam.zmax);
+    cam.x=pinch.wx-mx/cam.z; cam.y=pinch.wy-my/cam.z; clampCam();
+    return;
+  }
+  if(drag&&drag.id===e.pointerId){
+    const dx=x-drag.sx, dy=y-drag.sy;
+    if(!drag.moved&&Math.hypot(dx,dy)>(drag.touch?10:5))drag.moved=true;
+    if(!drag.moved)return;
+    if(drag.paint){
+      const i=screenToTile(x,y);
+      if(i!==drag.last){drag.last=i; if(i>=0&&game.tiles[i].o===0&&buildable(game.tiles[i])&&game.placing===B.ROAD){tryBuild(0,i,B.ROAD,true);}}
+    }else{cam.x=drag.cx-dx/cam.z; cam.y=drag.cy-dy/cam.z; clampCam(); cv.style.cursor="grabbing";}
+  }
+});
+function endPointer(e,cancel){
+  if(!game)return;
+  pointers.delete(e.pointerId);
+  if(pinch){ if(pointers.size<2)pinch=null; drag=null; return; }
+  if(drag&&drag.id===e.pointerId){
+    const d=drag; drag=null; cv.style.cursor="crosshair";
+    if(cancel||d.moved||d.paint)return;
+    if(d.button===2){ if(game.placing)game.placing=null; else game.sel=-1; refreshUI(true); return; }
+    if(d.button===0){const [x,y]=localXY(e); handleTap(screenToTile(x,y));}
+  }
+}
+cv.addEventListener("pointerup",e=>endPointer(e,false));
+cv.addEventListener("pointercancel",e=>endPointer(e,true));
+cv.addEventListener("pointerleave",e=>{if(e.pointerType==="mouse")mouse.inside=false;});
+cv.addEventListener("contextmenu",e=>e.preventDefault());
+cv.addEventListener("wheel",e=>{
+  e.preventDefault(); if(!game)return;
+  const [x,y]=localXY(e);
+  zoomAt(Math.pow(1.0018,-e.deltaY*(e.deltaMode===1?33:1)),x,y);
+},{passive:false});
+function minimapJump(e){
+  const r=mmCv.getBoundingClientRect();
+  cam.x=(e.clientX-r.left)/r.width*W*TS-vw/cam.z/2;
+  cam.y=(e.clientY-r.top)/r.height*H*TS-vh/cam.z/2;
+  clampCam();
+}
+let mmDrag=false;
+mmCv.addEventListener("pointerdown",e=>{if(!game)return;mmDrag=true;try{mmCv.setPointerCapture(e.pointerId);}catch(_){}minimapJump(e);});
+mmCv.addEventListener("pointermove",e=>{if(mmDrag)minimapJump(e);});
+mmCv.addEventListener("pointerup",()=>{mmDrag=false;});
+mmCv.addEventListener("pointercancel",()=>{mmDrag=false;});
+
+// ---------- clavier ----------
+const MOVE_CODES=["KeyW","KeyA","KeyS","KeyD","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"];
+function togglePause(){if(!game||game.phase==="over")return;game.paused=!game.paused;sfx("click");refreshUI(true);}
+function cycleSpeed(){if(!game)return;game.speed=game.speed>=3?1:game.speed+1;sfx("click");refreshUI(true);}
+function openHelp(){$("helpModal").classList.remove("hidden");if(game)game.modal=true;}
+function closeHelp(){$("helpModal").classList.add("hidden");if(game)game.modal=false;}
+window.addEventListener("keydown",e=>{
+  if(!game||!$("titleScreen").classList.contains("hidden"))return;
+  if(e.target.tagName==="INPUT"){if(e.key==="Escape")e.target.blur();return;}
+  const c=e.code;
+  if(game.tut){
+    if(c==="Enter"||c==="Space"){e.preventDefault();tutAdvance();}
+    else if(c==="Escape")endTutorial();
+    return;
+  }
+  if(!$("helpModal").classList.contains("hidden")){if(c==="Escape"||c==="KeyH"||c==="Enter")closeHelp();return;}
+  if(MOVE_CODES.includes(c)){keys.add(c);e.preventDefault();return;}
+  const numIdx=["Digit1","Digit2","Digit3","Digit4","Digit5"].indexOf(c)>=0?["Digit1","Digit2","Digit3","Digit4","Digit5"].indexOf(c):["Numpad1","Numpad2","Numpad3","Numpad4","Numpad5"].indexOf(c);
+  if(numIdx>=0){startPlacing(BUILD_ORDER[numIdx]);return;}
+  switch(c){
+    case"Space":e.preventDefault();togglePause();break;
+    case"Escape":game.placing=null;game.sel=-1;refreshUI(true);break;
+    case"KeyF":cycleSpeed();break;
+    case"KeyC":if(me().alive)focusTile(me().city);break;
+    case"KeyV":if(game.lastAttack>=0)focusTile(game.lastAttack);break;
+    case"KeyR":if(me().alive&&game.phase==="play"){recruit(5);refreshUI(true);}break;
+    case"KeyT":{const t=["build","market","diplo","log"];setTab(t[(t.indexOf(tab)+1)%4]);break;}
+    case"KeyH":openHelp();break;
+    case"Equal":case"NumpadAdd":zoomAt(1.25,vw/2,vh/2);break;
+    case"Minus":case"Digit6":case"NumpadSubtract":zoomAt(.8,vw/2,vh/2);break;
+    default:
+      if(e.key==="+")zoomAt(1.25,vw/2,vh/2); else if(e.key==="-")zoomAt(.8,vw/2,vh/2);
+  }
+});
+window.addEventListener("keyup",e=>keys.delete(e.code));
+window.addEventListener("blur",()=>keys.clear());
+
+// ---------- boucle principale ----------
+function econTick(){
+  for(const p of players)playerEcon(p,1);
+  marketTick();
+  if(game.mod.until&&game.time>game.mod.until)game.mod={income:1,extract:1,until:0,label:""};
+  game.offers=game.offers.filter(o=>o.exp>game.time);
+  for(const p of players)for(const q of players){
+    if(p===q)continue;
+    if(p.allies.has(q.id))addRel(p.id,q.id,.3); else p.rel[q.id]=(p.rel[q.id]??0)*.997;
+  }
+  questCheck();
+  const left=GAME_LEN-game.time;
+  if(left<=300&&!game.warn5){game.warn5=true;logMsg("Le volcan gronde... plus que 5 minutes.","lg-war");toast("Le volcan gronde : 5 minutes !","red");sfx("alert");}
+  if(left<=60&&!game.warn1){game.warn1=true;logMsg("L'ÉRUPTION EST IMMINENTE.","lg-war");toast("ÉRUPTION DANS 1 MINUTE !","red",6000);sfx("alert");}
+  if(left<=60)game.shake=Math.max(game.shake,rnd(0,1.5));
+}
+function simPlay(dt){
+  game.time+=dt; game.econAcc+=dt;
+  while(game.econAcc>=1){game.econAcc-=1; econTick(); if(game.phase!=="play")return;}
+  for(const p of players)if(p.bot&&p.alive){
+    p.aiAcc+=dt;
+    while(p.aiAcc>=2.2){p.aiAcc-=2.2; aiAct(p); if(game.phase==="over")return;}
+  }
+  if(game.time>=game.evNext)triggerRandomEvent();
+  if(!game.truceWarned&&game.time>=game.truce){
+    game.truceWarned=true; sfx("alert");
+    toast("Fin de la trêve : les empires peuvent maintenant t'attaquer !","red",6000);
+    logMsg("Fin de la trêve.","lg-war");
+  }
+  if(game.time>=GAME_LEN)startEruption();
+}
+let last=performance.now();
+function loop(now){
+  requestAnimationFrame(loop);
+  const rdt=Math.min(.1,Math.max(0,(now-last)/1000)); last=now;
+  if(!game)return;
+  updateCamera(rdt);
+  game.hover=mouse.inside?screenToTile(mouse.x,mouse.y):-1;
+  const running=game.phase!=="over"&&!game.paused&&!game.tut&&!game.modal;
+  if(running){
+    const dt=rdt*game.speed;
+    if(game.phase==="play")simPlay(dt);
+    else if(game.phase==="erupt")eruptionUpdate(dt);
+    if(game.phase!=="over"){
+      const left=GAME_LEN-game.time;
+      game.smokeAcc+=dt;
+      const rate=game.phase==="erupt"?.03:(left<120?.08:.3);
+      if(game.smokeAcc>rate){
+        game.smokeAcc=0;
+        const [cx,cy]=worldCenter(game.volcano);
+        game.parts.push({x:cx+rnd(-3,3),y:cy-4,vx:rnd(-6,4),vy:rnd(-26,-14),life:rnd(1.5,3.5),max:3.5,size:rnd(1,3),c:pick(["#6a625a","#57504a","#7d746a"])});
+      }
+      for(const p of game.parts){p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;}
+      if(game.parts.some(p=>p.life<=0))game.parts=game.parts.filter(p=>p.life>0);
+    }
+  }
+  for(const f of game.flashes)f.t-=rdt;
+  for(const f of game.floats)f.t-=rdt;
+  for(const p of game.pings)p.t-=rdt;
+  if(game.flashes.length&&game.flashes[0].t<=0)game.flashes=game.flashes.filter(f=>f.t>0);
+  if(game.floats.length&&game.floats.some(f=>f.t<=0))game.floats=game.floats.filter(f=>f.t>0);
+  if(game.pings.length&&game.pings.some(p=>p.t<=0))game.pings=game.pings.filter(p=>p.t>0);
+  game.shake=Math.max(0,game.shake-rdt*6);
+  game.uiAcc+=rdt;
+  if(game.uiAcc>.2){game.uiAcc=0; refreshUI(false);}
+  render(now);
+  updateTip();
+  if(game.tut)positionTut();
+}
+
+// ---------- boutons HUD & modales ----------
+$("pauseBtn").addEventListener("click",togglePause);
+$("speedBtn").addEventListener("click",cycleSpeed);
+$("muteBtn").addEventListener("click",()=>{muted=!muted;$("muteBtn").textContent=muted?"Muet":"Son";});
+$("helpBtn").addEventListener("click",openHelp);
+$("helpClose").addEventListener("click",closeHelp);
+$("spectateBtn").addEventListener("click",()=>$("deadModal").classList.add("hidden"));
+function backToTitle(){
+  $("endScreen").classList.add("hidden"); $("deadModal").classList.add("hidden");
+  if(game){endTutorial(true); game.phase="over";}
+  showTitle();
+}
+$("deadReplay").addEventListener("click",backToTitle);
+$("replayBtn").addEventListener("click",backToTitle);
+
+// ---------- écran titre & démarrage ----------
+let diffKey=store.get("noirium_diff")||"normal"; if(!DIFF[diffKey])diffKey="normal";
+function showTitle(){
+  $("titleScreen").classList.remove("hidden");
+  document.querySelectorAll("#diffSeg [data-diff]").forEach(b=>b.classList.toggle("on",b.dataset.diff===diffKey));
+  $("tutoChk").checked=!store.get("noirium_tuto");
+  let best=null; try{best=JSON.parse(store.get("noirium_best")||"null");}catch(e){}
+  $("bestLine").textContent=best?`Record : ${fmt(best.score)} (${best.name}, ${best.diff})`:"";
+  const n=store.get("noirium_name"); if(n&&!$("playerName").value)$("playerName").value=n;
+}
+$("diffSeg").addEventListener("click",e=>{
+  const b=e.target.closest("[data-diff]"); if(!b)return;
+  diffKey=b.dataset.diff; store.set("noirium_diff",diffKey);
+  document.querySelectorAll("#diffSeg [data-diff]").forEach(x=>x.classList.toggle("on",x===b));
+});
+function startGame(){
+  ac();
+  const name=($("playerName").value.replace(/[<>&"'`]/g,"").trim()||"Vous").slice(0,14);
+  store.set("noirium_name",name);
+  $("titleScreen").classList.add("hidden");
+  $("endScreen").classList.add("hidden"); $("deadModal").classList.add("hidden");
+  $("toasts").innerHTML="";
+  $("side").classList.remove("collapsed"); setText("sideToggle","▼ Panneau");
+  keys.clear(); drag=null; pinch=null; diploOpen=-1; sparkVer=-1; lastArrowUp=null;
+  newGame(name,diffKey);
+  ["ctxPanel","dOffers","dRank","dEmp"].forEach(id=>{$(id)._h=null;});
+  buildBuildTab();
+  resize();
+  cam.z=cam.tz=clamp(Math.max(Math.min(vw/(W*TS),vh/(H*TS))*1.4,1.6),cam.zmin,3);
+  focusTile(me().city);
+  setTab("build");
+  refreshUI(true);
+  sfx("ally");
+  if($("tutoChk").checked)startTutorial();
+  else toast("Clique les cases autour de ta capitale pour t'étendre !","gold",5000);
+}
+$("startBtn").addEventListener("click",startGame);
+$("playerName").addEventListener("keydown",e=>{if(e.key==="Enter")startGame();});
+
+showTitle();
+resize();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

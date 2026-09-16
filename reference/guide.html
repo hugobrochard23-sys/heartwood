@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Le Grimoire de Heartwood</title>
+<meta name="description" content="Règles complètes de Heartwood, expliquées simplement : comment jouer, l'armée, la diplomatie, le Gardien et le Cœur.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Vollkorn:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f2eee0; --bg-alt:#e8e1c9; --panel:#fbf9f0; --line:#cfc4a0; --line-strong:#a99a6c;
+    --ink:#20291b; --ink-dim:#5c6a4c; --ink-faint:#8a9375;
+    --accent:#8a5f12; --accent-strong:#5c3f0c; --accent-bg:#f0d98a;
+    --red:#a33324; --red-bg:#f0d4cc;
+    --green:#3f6b26; --green-bg:#dce8c8;
+    --violet:#6a3f8f; --violet-bg:#e6dcf0;
+    --heart:#b32a4c; --heart-bg:#f4d4dd;
+    --shadow: 3px 3px 0 rgba(32,41,27,.12);
+  }
+  :root:not([data-theme="light"]){
+    @media (prefers-color-scheme: dark){
+      --bg:#0f150f; --bg-alt:#182016; --panel:#1a2417; --line:#354a30; --line-strong:#4f6b46;
+      --ink:#dfe8c8; --ink-dim:#a3b090; --ink-faint:#6d7a5f;
+      --accent:#e8c85a; --accent-strong:#f2dd94; --accent-bg:#3a3216;
+      --red:#e8927e; --red-bg:#3a221c;
+      --green:#9fce6c; --green-bg:#233420;
+      --violet:#c9a3e8; --violet-bg:#2c2038;
+      --heart:#ff8fa8; --heart-bg:#3a1c26;
+      --shadow: 3px 3px 0 rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0f150f; --bg-alt:#182016; --panel:#1a2417; --line:#354a30; --line-strong:#4f6b46;
+    --ink:#dfe8c8; --ink-dim:#a3b090; --ink-faint:#6d7a5f;
+    --accent:#e8c85a; --accent-strong:#f2dd94; --accent-bg:#3a3216;
+    --red:#e8927e; --red-bg:#3a221c;
+    --green:#9fce6c; --green-bg:#233420;
+    --violet:#c9a3e8; --violet-bg:#2c2038;
+    --heart:#ff8fa8; --heart-bg:#3a1c26;
+    --shadow: 3px 3px 0 rgba(0,0,0,.35);
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Vollkorn',Georgia,'Times New Roman',serif;
+    font-size:17px; line-height:1.62;
+    padding-inline:20px; padding-block:0;
+  }
+  ::selection{background:var(--accent-bg); color:var(--ink);}
+  h1,h2,h3,.eyebrow,.pill,.kbd,nav a{font-family:'Silkscreen','Courier New',monospace;}
+  .mono, .stat-num, td.num, .fact b, .shortcut kbd{font-family:'JetBrains Mono',ui-monospace,monospace; font-variant-numeric:tabular-nums;}
+  a{color:var(--accent-strong);}
+  img{max-width:100%;}
+
+  /* ---------- top nav ---------- */
+  #topnav{
+    position:sticky; top:0; z-index:20; margin-inline:-20px; padding:10px 20px;
+    background:color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter:blur(6px);
+    border-bottom:2px solid var(--line);
+    display:flex; gap:6px; align-items:center; overflow-x:auto; white-space:nowrap;
+  }
+  #topnav .brand{font-size:11px; letter-spacing:1px; color:var(--accent-strong); margin-right:10px; flex:none;}
+  #topnav a{
+    font-size:9px; letter-spacing:.5px; text-decoration:none; color:var(--ink-dim);
+    padding:6px 9px; border:1px solid transparent; border-radius:2px; flex:none;
+  }
+  #topnav a:hover{color:var(--ink); border-color:var(--line);}
+  #topnav a.active{color:var(--accent-strong); border-color:var(--line-strong); background:var(--panel);}
+
+  main{max-width:760px; margin:0 auto; padding-block:36px 80px;}
+  .wide{max-width:920px; margin-inline:auto;}
+
+  /* ---------- hero ---------- */
+  .hero{padding-block:20px 8px;}
+  .eyebrow{
+    font-size:10px; letter-spacing:2px; color:var(--ink-faint); text-transform:uppercase;
+    display:flex; align-items:center; gap:8px; margin-bottom:14px;
+  }
+  .eyebrow::before{content:""; width:22px; height:2px; background:var(--line-strong); display:inline-block;}
+  h1{
+    font-size:clamp(34px,7vw,58px); line-height:1.02; margin:0 0 6px; letter-spacing:1px;
+    text-wrap:balance; color:var(--ink);
+  }
+  h1 em{font-style:normal; color:var(--accent-strong);}
+  .subtitle{font-size:11px; letter-spacing:2px; color:var(--ink-faint); margin-bottom:22px;}
+  .hook{
+    display:flex; flex-wrap:wrap; gap:6px 16px; font-family:'Silkscreen',monospace;
+    font-size:12px; letter-spacing:.5px; margin-bottom:22px; color:var(--accent-strong);
+  }
+  .hook span:last-child{color:var(--red);}
+  .lede{font-size:19px; line-height:1.6; color:var(--ink); margin-bottom:6px;}
+  .lede b{color:var(--accent-strong); font-weight:700;}
+
+  .factrow{
+    display:flex; flex-wrap:wrap; gap:10px; margin-block:26px 8px;
+  }
+  .fact{
+    flex:1 1 140px; background:var(--panel); border:1px solid var(--line); border-radius:3px;
+    padding:12px 14px; box-shadow:var(--shadow);
+  }
+  .fact b{display:block; font-size:22px; color:var(--accent-strong); line-height:1;}
+  .fact span{font-size:12px; color:var(--ink-dim);}
+
+  /* ---------- sections ---------- */
+  section{padding-block:52px; border-top:1px solid var(--line);}
+  section:first-of-type{border-top:none;}
+  h2{
+    font-size:20px; letter-spacing:.5px; color:var(--ink); margin:0 0 6px;
+    text-wrap:balance;
+  }
+  .sec-num{color:var(--ink-faint); margin-right:8px;}
+  .sec-intro{color:var(--ink-dim); font-size:16.5px; max-width:62ch; margin-bottom:28px;}
+  p{max-width:66ch;}
+  .max{max-width:none;}
+  strong{color:var(--ink); font-weight:700;}
+
+  /* ---------- timeline ---------- */
+  .timeline{list-style:none; margin:0; padding:0; max-width:none;}
+  .timeline li{
+    display:grid; grid-template-columns:64px 14px 1fr; gap:0 16px; padding-block:14px;
+    position:relative;
+  }
+  .timeline li:not(:last-child)::after{
+    content:""; position:absolute; left:71px; top:38px; bottom:-8px; width:2px; background:var(--line);
+  }
+  .t-time{font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--accent-strong); font-weight:700; padding-top:2px; text-align:right;}
+  .t-dot{width:14px; height:14px; border-radius:50%; background:var(--panel); border:2px solid var(--line-strong); margin-top:3px; z-index:1;}
+  .t-dot.hot{background:var(--red); border-color:var(--red);}
+  .t-dot.heart{background:var(--heart); border-color:var(--heart);}
+  .t-body b{display:block; font-size:15.5px; color:var(--ink); margin-bottom:2px;}
+  .t-body p{margin:0; font-size:15px; color:var(--ink-dim); max-width:56ch;}
+
+  /* ---------- cards ---------- */
+  .grid{display:grid; gap:14px; margin-block:22px; max-width:none;}
+  .grid.g2{grid-template-columns:repeat(2,1fr);}
+  .grid.g3{grid-template-columns:repeat(3,1fr);}
+  @media (max-width:640px){ .grid.g2, .grid.g3{grid-template-columns:1fr;} }
+  .card{
+    background:var(--panel); border:1px solid var(--line); border-radius:3px; padding:16px 18px;
+    box-shadow:var(--shadow);
+  }
+  .card h3{font-size:12px; letter-spacing:.5px; margin:0 0 8px; color:var(--accent-strong); display:flex; align-items:center; gap:8px;}
+  .card p{font-size:15px; color:var(--ink-dim); margin:0; max-width:none;}
+  .card .num{font-family:'JetBrains Mono',monospace; font-size:26px; color:var(--ink); display:block; margin-bottom:4px; line-height:1;}
+  .card .formula{
+    font-family:'JetBrains Mono',monospace; font-size:13px; background:var(--bg-alt); border:1px solid var(--line);
+    border-radius:2px; padding:6px 8px; margin-block:8px; overflow-x:auto; color:var(--ink);
+  }
+  .card.warn{border-color:var(--red); }
+  .card.warn h3{color:var(--red);}
+  .card.good{border-color:var(--green);}
+  .card.good h3{color:var(--green);}
+  .card.myst{border-color:var(--violet);}
+  .card.myst h3{color:var(--violet);}
+  .card.heart{border-color:var(--heart);}
+  .card.heart h3{color:var(--heart);}
+
+  .pill{
+    display:inline-block; font-size:10px; letter-spacing:.5px; padding:2px 8px; border-radius:2px;
+    background:var(--accent-bg); color:var(--accent-strong); border:1px solid var(--line-strong);
+  }
+  .pill.red{background:var(--red-bg); color:var(--red); border-color:var(--red);}
+  .pill.green{background:var(--green-bg); color:var(--green); border-color:var(--green);}
+  .pill.violet{background:var(--violet-bg); color:var(--violet); border-color:var(--violet);}
+  .pill.heart{background:var(--heart-bg); color:var(--heart); border-color:var(--heart);}
+
+  /* ---------- tables ---------- */
+  .tablewrap{overflow-x:auto; margin-block:18px; max-width:none;}
+  table{border-collapse:collapse; width:100%; font-size:15px; min-width:420px;}
+  th,td{text-align:left; padding:8px 12px; border-bottom:1px solid var(--line);}
+  th{font-family:'Silkscreen',monospace; font-size:9px; letter-spacing:.5px; color:var(--ink-faint); text-transform:uppercase; white-space:nowrap;}
+  td.num{text-align:right;}
+  th.num{text-align:right;}
+  tr:last-child td{border-bottom:none;}
+  tr.hi td{color:var(--red); font-weight:700;}
+
+  /* ---------- shortcuts ---------- */
+  .shortcuts{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:8px 20px; margin-block:18px; max-width:none;}
+  .shortcut{display:flex; align-items:center; gap:10px; font-size:15px; padding-block:4px;}
+  kbd{
+    font-size:11px; background:var(--bg-alt); border:1px solid var(--line-strong); border-bottom-width:2px;
+    border-radius:3px; padding:2px 7px; color:var(--ink); flex:none; min-width:28px; text-align:center;
+  }
+  .shortcut span{color:var(--ink-dim);}
+
+  /* ---------- misc ---------- */
+  ul.plain{padding-left:20px; margin:12px 0;}
+  ul.plain li{margin-block:6px; font-size:16px;}
+  blockquote{
+    margin:20px 0; padding:14px 18px; border-left:3px solid var(--accent-strong); background:var(--bg-alt);
+    font-style:italic; color:var(--ink-dim); max-width:60ch; border-radius:0 3px 3px 0;
+  }
+  .divider-word{
+    text-align:center; font-family:'Silkscreen',monospace; font-size:10px; letter-spacing:3px;
+    color:var(--ink-faint); margin-block:0;
+  }
+  footer{
+    max-width:760px; margin:0 auto; padding-block:20px 60px; text-align:center;
+    color:var(--ink-faint); font-size:13px; border-top:1px solid var(--line);
+  }
+  footer .pill{margin-inline:4px;}
+</style>
+</head>
+<body>
+
+<nav id="topnav">
+  <span class="brand">HEARTWOOD</span>
+  <a href="#quoi">Le jeu</a>
+  <a href="#partie">Une partie</a>
+  <a href="#jouer">Jouer</a>
+  <a href="#armee">Armée</a>
+  <a href="#diplo">Diplomatie</a>
+  <a href="#gardien">Gardien</a>
+  <a href="#coeur">Cœur</a>
+  <a href="#victoire">Victoire</a>
+  <a href="#aide">Aide-mémoire</a>
+</nav>
+
+<main>
+
+  <section id="quoi" class="hero" style="border-top:none;">
+    <div class="eyebrow">Fiche de présentation</div>
+    <h1>Le Grimoire<br>de <em>Heartwood</em></h1>
+    <div class="subtitle">Comment jouer · règles complètes · expliqué simplement</div>
+    <div class="hook">
+      <span>Construis ton armée.</span><span>Deviens #1.</span><span>Affronte le Gardien.</span><span>Ne fais confiance à personne.</span>
+    </div>
+    <p class="lede">Heartwood est un jeu de conquête pour <b>plusieurs joueurs</b>, jouable directement dans un navigateur, sans rien installer. Une partie dure <b>15 minutes</b> de guerre et de diplomatie, suivies d'un combat de boss et d'une confrontation finale de 30 secondes à 2 minutes. À la fin, <b>un seul joueur gagne</b>.</p>
+    <p>Douze empires se partagent une île dont le centre est occupé par un arbre immense, l'<strong>Arbre-Monde</strong>. Chacun conquiert du territoire, agrandit son armée, s'allie ou trahit les autres. Celui qui contrôle le plus de terres à la 15<sup>e</sup> minute obtient un privilège redoutable&nbsp;: le droit de réveiller le <strong>Gardien</strong>, un monstre géant endormi dans l'Arbre. Une fois le Gardien vaincu, un <strong>Cœur</strong> apparaît et toutes les alliances tombent d'un coup&nbsp;: le dernier à le tenir 30 secondes remporte la partie.</p>
+    <div class="factrow">
+      <div class="fact"><b>12</b><span>empires en jeu</span></div>
+      <div class="fact"><b>15 min</b><span>avant le Gardien</span></div>
+      <div class="fact"><b>1</b><span>vainqueur, jamais d'égalité</span></div>
+      <div class="fact"><b>0</b><span>installation nécessaire</span></div>
+    </div>
+  </section>
+
+  <section id="partie">
+    <h2><span class="sec-num">01</span>Le déroulé d'une partie</h2>
+    <p class="sec-intro">Une partie de Heartwood suit toujours la même trame, minute par minute. Elle se lit comme une histoire à quatre actes&nbsp;: la conquête, la course au sommet, le combat contre le Gardien, puis la trahison finale.</p>
+
+    <ul class="timeline">
+      <li>
+        <div class="t-time">0:00</div><div class="t-dot"></div>
+        <div class="t-body"><b>Le monde s'ouvre</b><p>Chaque joueur apparaît avec sa capitale et une petite armée. Une <strong>trêve</strong> empêche toute attaque pendant les premières minutes (90&nbsp;secondes en difficulté normale) : le temps de s'installer avant que la guerre commence.</p></div>
+      </li>
+      <li>
+        <div class="t-time">1:30</div><div class="t-dot"></div>
+        <div class="t-body"><b>Fin de la trêve</b><p>Les premières attaques commencent. Chacun agrandit son territoire en grignotant les terres neutres et les frontières de ses voisins.</p></div>
+      </li>
+      <li>
+        <div class="t-time">3:00+</div><div class="t-dot"></div>
+        <div class="t-body"><b>Alliances et coalitions</b><p>Les premières alliances se nouent. Dès qu'un joueur dépasse <strong>20&nbsp;%</strong> des terres, les autres commencent à se liguer contre lui : plus on est fort, plus on devient une cible.</p></div>
+      </li>
+      <li>
+        <div class="t-time">5:00</div><div class="t-dot"></div>
+        <div class="t-body"><b>L'Arbre commence à luire</b><p>Le décor change progressivement pour rappeler l'échéance qui approche. Rien de mécanique encore, juste un avertissement visuel.</p></div>
+      </li>
+      <li>
+        <div class="t-time">10:00 – 14:00</div><div class="t-dot hot"></div>
+        <div class="t-body"><b>Racines, corruption, tremblement</b><p>Les racines remuent à 10:00, une corruption sombre gagne l'Arbre à 13:00, puis il se met à trembler à 14:00. La tension monte jusqu'à l'échéance.</p></div>
+      </li>
+      <li>
+        <div class="t-time">15:00</div><div class="t-dot hot"></div>
+        <div class="t-body"><b>L'Arbre s'ouvre — invocation</b><p>Le classement se fige un instant : le joueur <strong>#1</strong> obtient 12&nbsp;secondes pour invoquer le Gardien. S'il ne le fait pas (ou n'est plus là), le droit passe automatiquement au nouveau #1.</p></div>
+      </li>
+      <li>
+        <div class="t-time">~15:00 – 18:00</div><div class="t-dot hot"></div>
+        <div class="t-body"><b>Le combat contre le Gardien</b><p>Tous les joueurs encore en vie peuvent envoyer des troupes contre le Gardien — jusqu'à 3&nbsp;minutes de combat. Plus il y a d'attaquants, plus il est fort : rejoindre le combat n'est jamais un choix neutre.</p></div>
+      </li>
+      <li>
+        <div class="t-time">Chute du Gardien</div><div class="t-dot heart"></div>
+        <div class="t-body"><b>Le Cœur apparaît, les alliances meurent</b><p>À l'instant où le Gardien tombe, <strong>toutes les alliances sont rompues</strong>, sans exception. Les anciens alliés deviennent des adversaires comme les autres.</p></div>
+      </li>
+      <li>
+        <div class="t-time">+30 s à +105 s</div><div class="t-dot heart"></div>
+        <div class="t-body"><b>La ruée vers le Cœur</b><p>Chacun envoie ses dernières forces vers le centre. Tenir le Cœur <strong>30&nbsp;secondes d'affilée</strong> suffit à gagner — mais chaque fois qu'il change de main, le compte à rebours se prolonge un peu.</p></div>
+      </li>
+      <li>
+        <div class="t-time">Fin</div><div class="t-dot"></div>
+        <div class="t-body"><b>Un seul vainqueur</b><p>L'écran de fin affiche le classement complet et le récit minute par minute de la partie : qui s'est allié à qui, qui a trahi qui, et comment tout s'est terminé.</p></div>
+      </li>
+    </ul>
+  </section>
+
+  <section id="jouer">
+    <h2><span class="sec-num">02</span>Comment on joue</h2>
+    <p class="sec-intro">Heartwood se joue presque entièrement à la souris (ou au doigt sur tactile). Il n'y a ni bâtiment à construire ni ressource à gérer : l'unique décision qui revient sans cesse est <em>« où est-ce que j'envoie mes soldats ? »</em></p>
+
+    <div class="grid g3">
+      <div class="card">
+        <h3>Conquérir une case</h3>
+        <p>Clique une case <strong>voisine</strong> de ton territoire — neutre ou possédée par un ennemi. Une partie de ton armée s'y met en marche et prend les cases une par une jusqu'à épuisement des troupes envoyées.</p>
+      </div>
+      <div class="card">
+        <h3>Régler la force d'attaque</h3>
+        <p>Un curseur choisit la part de ton armée envoyée à chaque clic (10&nbsp;% à 100&nbsp;%). Envoyer beaucoup conquiert plus loin, mais laisse ta capitale moins défendue.</p>
+      </div>
+      <div class="card">
+        <h3>Se déplacer sur la carte</h3>
+        <p>On fait glisser la carte à la souris (ou au doigt), on zoome à la molette ou en pinçant l'écran, et la mini-carte en bas à gauche permet de sauter n'importe où en un clic.</p>
+      </div>
+    </div>
+
+    <p>Le panneau de droite affiche en permanence le <strong>classement</strong> des douze empires, un onglet <strong>Armée</strong> pour tes capacités, un onglet <strong>Diplomatie</strong> pour gérer alliances et trahisons, et un <strong>Journal</strong> qui garde une trace de tout ce qui s'est passé.</p>
+
+    <h3 style="font-size:14px; color:var(--ink); margin-top:32px;">Raccourcis clavier</h3>
+    <div class="shortcuts">
+      <div class="shortcut"><kbd>Espace</kbd><span>Mettre en pause</span></div>
+      <div class="shortcut"><kbd>F</kbd><span>Changer la vitesse (×1 à ×3)</span></div>
+      <div class="shortcut"><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd><span>Force d'attaque 25/50/75/100&nbsp;%</span></div>
+      <div class="shortcut"><kbd>R</kbd><span>Lancer un ralliement</span></div>
+      <div class="shortcut"><kbd>X</kbd><span>Fortifier la case sélectionnée</span></div>
+      <div class="shortcut"><kbd>G</kbd><span>Invoquer / attaquer le Gardien / envoyer au Cœur</span></div>
+      <div class="shortcut"><kbd>C</kbd><span>Recentrer sur sa capitale</span></div>
+      <div class="shortcut"><kbd>V</kbd><span>Recentrer sur l'Arbre-Monde</span></div>
+      <div class="shortcut"><kbd>T</kbd><span>Changer d'onglet</span></div>
+      <div class="shortcut"><kbd>+</kbd><kbd>–</kbd><span>Zoomer / dézoomer</span></div>
+      <div class="shortcut"><kbd>ZQSD</kbd><span>Déplacer la caméra</span></div>
+      <div class="shortcut"><kbd>H</kbd><span>Afficher l'aide en jeu</span></div>
+    </div>
+  </section>
+
+  <section id="armee">
+    <h2><span class="sec-num">03</span>Ton armée et ton pouvoir</h2>
+    <p class="sec-intro">Il n'y a qu'une seule ressource à surveiller&nbsp;: le <strong>Pouvoir&nbsp;⚡</strong>. Il n'y a ni or, ni bâtiment, ni chaîne de production — tout vient directement du territoire que tu contrôles.</p>
+
+    <div class="grid g2">
+      <div class="card">
+        <h3>L'armée grandit toute seule</h3>
+        <p>Pas de recrutement à payer : ton armée augmente automatiquement, d'autant plus vite que ton territoire est grand.</p>
+        <div class="formula">croissance / seconde ≈ 0,3 + 0,35 × √(cases)</div>
+        <p>Elle a cependant un plafond, lui aussi lié à ta taille&nbsp;:</p>
+        <div class="formula">plafond ≈ 30 + 8 × √(cases) + 0,8 × cases</div>
+        <p>Plus tu conquiers, plus ton armée peut grossir — mais gagner du terrain prend du temps avant de vraiment payer.</p>
+      </div>
+      <div class="card">
+        <h3>Le Pouvoir ⚡ paie tes capacités</h3>
+        <p>Chaque case que tu possèdes produit un peu de Pouvoir chaque seconde. Les <strong>racines de l'Arbre</strong> (les cases brunes en étoile autour du centre) en donnent nettement plus que les cases ordinaires.</p>
+        <div class="formula">pouvoir / seconde ≈ 0,6 + 0,015 × cases + 0,35 × racines</div>
+        <p>Le Pouvoir sert à payer trois capacités et les propositions de diplomatie (plafonné à 300).</p>
+      </div>
+    </div>
+
+    <div class="tablewrap">
+      <table>
+        <tr><th>Capacité</th><th>Coût</th><th>Effet</th></tr>
+        <tr><td>Ralliement <kbd>R</kbd></td><td class="num">60 ⚡</td><td>+40&nbsp;% de puissance d'attaque pendant 20 secondes.</td></tr>
+        <tr><td>Fortifier <kbd>X</kbd></td><td class="num">30 ⚡</td><td>Double la défense de la case sélectionnée, en plus du terrain.</td></tr>
+        <tr><td>Offrir</td><td class="num">25 ⚡</td><td>Donne du Pouvoir à un autre joueur pour améliorer la relation.</td></tr>
+        <tr><td>Proposer une alliance</td><td class="num">20 ⚡</td><td>Envoie une offre d'alliance (voir Diplomatie).</td></tr>
+      </table>
+    </div>
+
+    <h3 style="font-size:14px; color:var(--ink); margin-top:32px;">Comment se défend une case</h3>
+    <p>Chaque case ennemie a une garnison qui dépend de l'armée totale de son propriétaire répartie sur son territoire, multipliée par un bonus de terrain&nbsp;:</p>
+    <div class="grid g3">
+      <div class="card"><h3>Plaine</h3><span class="num">×1</span><p>Terrain neutre, aucun bonus.</p></div>
+      <div class="card"><h3>Forêt</h3><span class="num">×1,3</span><p>Un peu plus difficile à prendre.</p></div>
+      <div class="card"><h3>Montagne</h3><span class="num">×1,8</span><p>Le terrain le plus difficile à conquérir.</p></div>
+    </div>
+    <p>Une case <strong>fortifiée</strong> (capacité Fortifier) voit sa défense doublée en plus de ce bonus de terrain. La <strong>capitale</strong> est un vrai bastion&nbsp;: sa garnison est toujours au moins 4 fois celle d'une case normale, et jamais moins de la moitié de l'armée totale du joueur. <strong>Si ta capitale tombe, ton empire est éliminé</strong> — c'est la seule façon de perdre avant la fin de la partie.</p>
+    <blockquote>Conquérir une case neutre coûte simplement des soldats&nbsp;: 2 par case en plaine ou forêt, 3 en montagne. Aucun or n'entre jamais en jeu.</blockquote>
+  </section>
+
+  <section id="diplo">
+    <h2><span class="sec-num">04</span>Diplomatie, alliances et trahisons</h2>
+    <p class="sec-intro">Une alliance n'est jamais une équipe définitive. C'est une promesse fragile — et le jeu est justement construit pour que la briser soit parfois la meilleure décision.</p>
+
+    <div class="grid g2">
+      <div class="card good">
+        <h3><span class="pill green">Allié</span> Ce que ça change</h3>
+        <p>Deux alliés ne peuvent plus s'attaquer l'un l'autre. C'est la seule protection du jeu : aucune trêve permanente, aucune zone sûre, seulement l'accord de l'autre.</p>
+      </div>
+      <div class="card warn">
+        <h3><span class="pill red">Trahison</span> Ce que ça coûte</h3>
+        <p>Trahir un allié rompt le pacte immédiatement et te marque du <strong>sceau du parjure</strong> pendant 3 minutes&nbsp;: plus personne n'acceptera de s'allier à toi durant ce temps.</p>
+      </div>
+    </div>
+
+    <h3 style="font-size:14px; color:var(--ink); margin-top:28px;">La chasse au premier de la carte</h3>
+    <p>Devenir #1 est à la fois un avantage et un danger. Dès qu'un joueur dépasse <strong>20&nbsp;%</strong> des terres, les autres empires commencent à se coordonner contre lui — et cette coalition ne se dissout que s'il retombe sous 15&nbsp;%. <strong>Plus tu es fort, plus tu deviens une cible.</strong></p>
+
+    <p>Les propositions d'alliance ne sont jamais garanties d'être acceptées&nbsp;: un bot refuse plus souvent si tu es marqué du parjure, si tu contrôles déjà beaucoup de terres, s'il vient de se faire attaquer par toi, ou s'il a déjà trois alliés. Offrir du Pouvoir améliore la relation et rend un futur « oui » plus probable.</p>
+  </section>
+
+  <section id="gardien">
+    <h2><span class="sec-num">05</span>Le Gardien</h2>
+    <p class="sec-intro">À 15:00, le joueur #1 obtient le droit d'invoquer le Gardien — un monstre géant endormi dans l'Arbre-Monde. Le vaincre n'a rien d'un combat en solitaire&nbsp;: c'est le moment le plus tendu de la partie.</p>
+
+    <div class="grid g2">
+      <div class="card myst">
+        <h3>Sa force de départ</h3>
+        <p>Les points de vie du Gardien dépendent de la force totale de tous les joueurs encore en vie au moment de son réveil.</p>
+        <div class="formula">PV ≈ max(300, 22 % de l'armée totale de tous les vivants)</div>
+      </div>
+      <div class="card myst">
+        <h3>Comment on l'attaque</h3>
+        <p>N'importe quel joueur en vie peut envoyer des troupes vers l'Arbre. Elles marchent jusqu'au centre puis frappent&nbsp;: <strong>chaque soldat arrivé inflige 1 point de dégât</strong> (1,25 pour celui qui l'a invoqué).</p>
+      </div>
+    </div>
+
+    <h3 style="font-size:14px; color:var(--ink); margin-top:28px;">Plus vous êtes nombreux, plus il devient fort</h3>
+    <p>C'est la règle centrale du combat&nbsp;: rejoindre l'attaque n'aide pas seulement l'équipe, elle rend l'ennemi plus dangereux pour tout le monde. Chaque nouvel attaquant augmente ses points de vie maximum.</p>
+
+    <div class="tablewrap">
+      <table>
+        <tr><th>Adversaires</th><th class="num">Puissance du Gardien</th></tr>
+        <tr><td>1</td><td class="num">100&nbsp;%</td></tr>
+        <tr><td>2</td><td class="num">160&nbsp;%</td></tr>
+        <tr><td>3</td><td class="num">230&nbsp;%</td></tr>
+        <tr><td>4</td><td class="num">310&nbsp;%</td></tr>
+        <tr><td>5</td><td class="num">400&nbsp;%</td></tr>
+        <tr class="hi"><td>6 et plus</td><td class="num">500&nbsp;% (plafond)</td></tr>
+      </table>
+    </div>
+
+    <p>Recruter tout le monde n'est donc jamais automatiquement la meilleure idée&nbsp;: un petit groupe soudé peut suffire, tandis qu'une foule entière se heurte à un Gardien bien plus coriace.</p>
+
+    <div class="grid g2" style="margin-top:24px;">
+      <div class="card">
+        <h3>Ses phases</h3>
+        <ul class="plain" style="font-size:14px;">
+          <li><strong>Éveillé</strong> — au-dessus de 50&nbsp;% de vie, combat normal.</li>
+          <li><strong>Rage</strong> — sous 50&nbsp;%, il commence à corrompre les terres autour de l'Arbre.</li>
+          <li><strong>Frénésie</strong> — sous 25&nbsp;%, il s'acharne en plus sur qui lui a fait le plus de dégâts.</li>
+          <li><strong>Dernier souffle</strong> — sous 10&nbsp;%, ses attaques s'intensifient encore : il faut l'achever vite.</li>
+        </ul>
+      </div>
+      <div class="card warn">
+        <h3><span class="pill red">Attention</span> S'il n'est pas vaincu à temps</h3>
+        <p>Le combat dure au maximum <strong>3&nbsp;minutes</strong>. Si le Gardien est toujours en vie à ce moment-là, il se retire de lui-même dans les racines — et le Cœur apparaît quand même, exposé.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="coeur">
+    <h2><span class="sec-num">06</span>Le Cœur et la trahison finale</h2>
+    <p class="sec-intro">L'instant où le Gardien tombe est aussi celui où toute confiance s'effondre. C'est le moment que la partie entière a construit.</p>
+
+    <div class="card heart" style="margin-block:22px;">
+      <h3><span class="pill heart">Règle absolue</span> Toutes les alliances sont rompues</h3>
+      <p>Sans exception et sans préavis. Les alliés de la veille deviennent des adversaires comme les autres, exactement en même temps que le Cœur apparaît sur l'Arbre.</p>
+    </div>
+
+    <div class="grid g2">
+      <div class="card heart">
+        <h3>Prendre le Cœur</h3>
+        <p>On y envoie des troupes comme pour le Gardien. Le tenir coûte cher à l'adversaire&nbsp;: pour l'arracher à quelqu'un, il faut envoyer <strong>1,5 fois</strong> sa garnison en place.</p>
+      </div>
+      <div class="card heart">
+        <h3>Gagner</h3>
+        <p>Tenir le Cœur <strong>30 secondes d'affilée</strong> suffit à remporter la partie. Chaque fois qu'il change de main, ce délai est prolongé de 8 secondes (jusqu'à 105 secondes au total avant que la partie se termine d'elle-même).</p>
+      </div>
+    </div>
+    <p>Si personne ne parvient jamais à s'en emparer, c'est le joueur classé <strong>#1</strong> à ce moment-là qui remporte la victoire par défaut.</p>
+  </section>
+
+  <section id="victoire">
+    <h2><span class="sec-num">07</span>Comment on gagne — et ce qui compte</h2>
+    <div class="grid g3">
+      <div class="card good">
+        <h3><span class="pill green">Victoire</span> Le Cœur</h3>
+        <p>Tenir le Cœur 30 secondes sans interruption. C'est la fin la plus fréquente d'une partie.</p>
+      </div>
+      <div class="card good">
+        <h3><span class="pill green">Victoire</span> Domination</h3>
+        <p>Éliminer tous les autres empires avant même l'apparition du Gardien. Rare, mais possible.</p>
+      </div>
+      <div class="card">
+        <h3><span class="pill">Par défaut</span> Le #1 l'emporte</h3>
+        <p>Si le temps s'épuise sans que le Cœur ait jamais été capturé, le joueur en tête du classement gagne.</p>
+      </div>
+    </div>
+
+    <p>Le classement en cours de partie ne mesure qu'une seule chose&nbsp;: le <strong>pourcentage de terres contrôlées</strong>. Il est visible en permanence dans le panneau de droite. À la fin, l'écran de victoire affiche un tableau complet (terres, armée, dégâts infligés au Gardien, temps passé à tenir le Cœur) et le <strong>récit minute par minute</strong> de la partie — qui s'est allié à qui, qui a trahi qui, qui est tombé et quand.</p>
+
+    <p>Trois niveaux de difficulté modifient la durée de la trêve, l'agressivité des adversaires et leur vitesse de croissance&nbsp;: <span class="pill">Facile</span> <span class="pill">Normal</span> <span class="pill red">Difficile</span>. Un tutoriel intégré guide les six premiers gestes de la toute première partie.</p>
+  </section>
+
+  <section id="aide">
+    <h2><span class="sec-num">08</span>Aide-mémoire</h2>
+    <p class="sec-intro">L'essentiel de Heartwood tient en une phrase&nbsp;: conquiers, deviens fort, mais pas trop visible, choisis tes alliés avec soin, et prépare-toi à les trahir au moment où ça comptera le plus.</p>
+
+    <div class="grid g2">
+      <div class="card">
+        <h3>Ce qu'il ne faut jamais oublier</h3>
+        <ul class="plain" style="font-size:15px;">
+          <li>Ta capitale qui tombe = élimination immédiate.</li>
+          <li>Un allié ne peut pas t'attaquer — jusqu'à ce qu'il te trahisse, ou que tu le trahisses.</li>
+          <li>Toutes les alliances tombent d'un coup à la mort du Gardien.</li>
+          <li>Plus tu recrutes de monde contre le Gardien, plus il devient fort.</li>
+          <li>Être #1 trop tôt attire une coalition contre toi.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Solo aujourd'hui, multijoueur demain</h3>
+        <p>La version actuelle se joue en solo contre 11 adversaires contrôlés par l'ordinateur, chacun avec un caractère différent (belliqueux, expansionniste, fourbe, diplomate). Le mode multijoueur en ligne est prévu mais pas encore ouvert — le bouton correspondant l'indique clairement dans le jeu.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Heartwood — <span class="pill">15 minutes</span><span class="pill">12 empires</span><span class="pill heart">1 vainqueur</span><br>
+  Jeu de conquête pour navigateur, sans installation.
+</footer>
+
+<script>
+(function(){
+  var links = Array.from(document.querySelectorAll('#topnav a'));
+  var sections = links.map(a => document.querySelector(a.getAttribute('href')));
+  function onScroll(){
+    var y = window.scrollY + 90;
+    var current = sections[0];
+    for (var i=0;i<sections.length;i++){ if (sections[i] && sections[i].offsetTop <= y) current = sections[i]; }
+    links.forEach(a => a.classList.toggle('active', document.querySelector(a.getAttribute('href')) === current));
+  }
+  document.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+})();
+</script>
+</body>
+</html>

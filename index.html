@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>HEARTWOOD — Build your army. Become #1. Fight the Guardian. Trust no one.</title>
+<meta name="description" content="Heartwood : jeu de conquête multijoueur de 15 minutes. Deviens #1, invoque le Gardien, survis à la trahison de tes alliés et capture le Cœur.">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ================= ÉCRAN TITRE ================= -->
+<div id="titleScreen" class="overlay">
+  <div class="bigcard pbox">
+    <h1>HEARTWOOD</h1>
+    <div class="sub">WORLD TREE · WAR · DIPLOMACY · BOSS · BETRAYAL</div>
+    <div class="hook"><span>BUILD YOUR ARMY.</span><span>BECOME #1.</span><span>FIGHT THE GUARDIAN.</span><span class="redt">TRUST NO ONE.</span></div>
+    <p class="pitch">Douze empires autour de l'<b class="greent">Arbre-Monde</b>. Conquiers, allie-toi, deviens <b class="goldt">#1</b>.
+    À <b class="redt">15:00</b>, le #1 invoque le <b>Gardien</b> : plus vous êtes nombreux à l'attaquer, plus il est fort.
+    Quand il tombe, le <b class="heartt">Cœur</b> apparaît et toutes les alliances s'effondrent. Un seul vainqueur.</p>
+    <input type="text" id="playerName" maxlength="14" placeholder="Nom de ton empire">
+    <div class="seg" id="diffSeg">
+      <button class="btn mini" data-diff="facile">Facile</button>
+      <button class="btn mini" data-diff="normal">Normal</button>
+      <button class="btn mini" data-diff="difficile">Difficile</button>
+    </div>
+    <label class="chk"><input type="checkbox" id="tutoChk"> Afficher le tutoriel</label>
+    <div class="modes">
+      <button class="btn big" id="soloBtn">JOUER EN SOLO <span class="dim">· 11 bots</span></button>
+      <button class="btn big ghost" id="multiBtn">MULTIJOUEUR <span class="dim">· bientôt</span></button>
+    </div>
+    <div id="bestLine"></div>
+    <div class="legend">
+      <div>· <b>Clic</b> sur une case voisine neutre ou ennemie : tu y envoies une part de ton armée.</div>
+      <div>· <b>Glisser</b> pour déplacer la carte, <b>molette</b> ou <b>pincer</b> pour zoomer.</div>
+      <div>· <b>Espace</b> pause · <b>F</b> vitesse · <b>1-4</b> force d'attaque · <b>R</b> ralliement · <b>G</b> Gardien/Cœur · <b>H</b> aide.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= HUD ================= -->
+<header id="hud">
+  <div class="logo">HEART<span>WOOD</span></div>
+  <div class="stat" title="Pouvoir ⚡ : produit par ton territoire, dépensé en capacités"><b class="goldt">⚡</b><b id="hPower">0</b><span class="sub" id="hPowerRate"></span></div>
+  <div class="stat" title="Armée chez toi / plafond (grandit toute seule)"><span class="ico-army"></span><b id="hArmy">0</b><span class="sub" id="hArmyCap"></span><span class="sub" id="hAway"></span></div>
+  <div class="stat" title="Part des terres et rang"><span class="ico-land"></span><b id="hLand">0 %</b><b id="hRank">#1</b></div>
+  <div class="stat" id="truceStat" title="Personne ne peut attaquer pendant la trêve"><span class="sub">Trêve</span><b id="hTruce">0:00</b></div>
+  <div id="timerBox">
+    <span id="hudPhase" class="sub">GARDIEN DANS</span>
+    <span id="hudTimer">15:00</span>
+    <div id="tbar"><div id="timerFill"></div></div>
+    <button class="btn hbtn" id="speedBtn" title="Vitesse (F)">x1</button>
+    <button class="btn hbtn" id="pauseBtn" title="Pause (Espace)">Pause</button>
+    <button class="btn hbtn" id="muteBtn">Son</button>
+    <button class="btn hbtn" id="helpBtn" title="Aide (H)">?</button>
+  </div>
+</header>
+
+<main>
+  <div id="mapWrap">
+    <canvas id="map"></canvas>
+    <canvas id="minimap" width="160" height="120"></canvas>
+    <div id="bossBar" class="pbox hidden"><div id="bossName" class="sk"></div><div class="bbar"><div id="bossFill"></div></div><div id="bossTxt" class="dim"></div></div>
+    <div id="toasts"></div>
+    <div id="tip" class="hidden"></div>
+    <div id="pauseTag" class="hidden">PAUSE</div>
+    <div id="banner" class="banner hidden"></div>
+  </div>
+
+  <aside id="side">
+    <button class="btn" id="sideToggle">▼ Panneau</button>
+    <div id="lbStrip"></div>
+    <div id="ctxPanel"></div>
+    <nav id="tabs">
+      <button data-tab="army" class="on">ARMÉE</button>
+      <button data-tab="diplo">DIPLO<span class="badge hidden" id="offerBadge">0</span></button>
+      <button data-tab="log">JOURNAL</button>
+    </nav>
+    <div class="tabc" id="tab-army"></div>
+    <div class="tabc hidden" id="tab-diplo"><div id="dOffers"></div><div id="dRank"></div><div id="dEmp"></div></div>
+    <div class="tabc hidden" id="tab-log"><div id="logBox"></div></div>
+  </aside>
+</main>
+
+<!-- ================= MODALES ================= -->
+<div id="helpModal" class="overlay hidden">
+  <div class="bigcard pbox">
+    <h2 class="sk" style="color:var(--gold); font-size:14px;">RÈGLES DU JEU</h2>
+    <ul>
+      <li><b>Conquête</b> : clique une case neutre ou ennemie voisine de ton territoire. Une part de ton armée (le curseur) part conquérir case après case. Ce qui part ne défend plus ta capitale.</li>
+      <li><b>Armée</b> : grandit toute seule, d'autant plus que ton territoire est grand. <b class="goldt">⚡ Pouvoir</b> : produit par tes terres (les racines de l'Arbre en donnent plus) ; sert aux capacités et à la diplomatie.</li>
+      <li><b>Défense</b> : chaque case est défendue par une garnison (armée ÷ cases). Forêt, montagne et fortifications la renforcent. La <b class="redt">capitale</b> est un bastion : si elle tombe, tu es éliminé.</li>
+      <li><b class="goldt">Classement</b> : % des terres. Le <b>#1</b> à 15:00 obtient le droit d'invoquer le Gardien… mais toute la carte se ligue contre le #1.</li>
+      <li><b class="greent">Alliances</b> : un allié ne peut pas t'attaquer. <b class="redt">Trahir</b> te marque du parjure : plus personne ne s'alliera à toi pendant 3 minutes.</li>
+      <li><b class="redt">Le Gardien</b> (15:00) : envoie des soldats au centre pour le blesser (1 soldat = 1 dégât). Chaque adversaire supplémentaire le renforce : 1 → 100 %, 2 → 160 %, 3 → 230 %, 4 → 310 %, 5 → 400 %. Il dévore les terres autour de l'Arbre, puis celles de qui le frappe le plus.</li>
+      <li><b class="heartt">Le Cœur</b> : à la mort du Gardien, toutes les alliances tombent. Envoie des soldats au centre : celui qui tient le Cœur 30 secondes gagne. Le prendre coûte 1,5 fois la garnison en place.</li>
+      <li><b>Raccourcis</b> : Espace pause · F vitesse · ZQSD/flèches caméra · +/- zoom · C capitale · V Arbre · 1-4 force d'attaque · R ralliement · X fortifier · G Gardien/Cœur · T onglet · Échap.</li>
+    </ul>
+    <button class="btn" id="helpClose">COMPRIS</button>
+  </div>
+</div>
+
+<div id="multiModal" class="overlay hidden">
+  <div class="bigcard pbox">
+    <h2 class="sk" style="color:var(--gold); font-size:14px;">MULTIJOUEUR — BIENTÔT</h2>
+    <p class="dim">Le mode en ligne n'est pas encore ouvert. Le moteur du jeu est déjà prêt à recevoir les ordres de plusieurs joueurs ; il manque le serveur qui les relie.</p>
+    <p class="dim">En attendant, joue en solo contre 11 bots : ils s'allient, se trahissent et se liguent contre le #1.</p>
+    <button class="btn" id="multiClose">COMPRIS</button>
+  </div>
+</div>
+
+<div id="deadModal" class="overlay hidden">
+  <div class="bigcard pbox">
+    <h2 class="sk" style="color:var(--red); font-size:16px;">TA CAPITALE EST TOMBÉE</h2>
+    <p id="deadTxt" class="dim"></p>
+    <p>Le monde continue sans toi… regarde qui aura le Cœur.</p>
+    <button class="btn" id="spectateBtn">REGARDER LA SUITE</button>
+    <button class="btn red" id="deadReplay">RECOMMENCER</button>
+  </div>
+</div>
+
+<div id="endScreen" class="overlay hidden">
+  <div class="bigcard pbox" style="max-width:720px;">
+    <h2 class="sk" id="endTitle"></h2>
+    <p id="endSub"></p>
+    <div id="endRecord"></div>
+    <div class="rankWrap"><table class="rank" id="rankTable"></table></div>
+    <div id="storyBox" class="story"></div>
+    <button class="btn" id="replayBtn">REJOUER</button>
+  </div>
+</div>
+
+<div id="tutRing" class="hidden"></div>
+<div id="tutBox" class="pbox hidden">
+  <div class="sk" id="tutStep" style="font-size:9px; color:var(--dim);"></div>
+  <div id="tutTxt"></div>
+  <div style="display:flex; gap:6px; justify-content:flex-end;">
+    <button class="btn mini" id="tutSkip">Passer</button>
+    <button class="btn mini green" id="tutNext">Suivant</button>
+  </div>
+</div>
+
+<script src="js/util.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/bots.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/net.js"></script>
+<script src="js/render.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
